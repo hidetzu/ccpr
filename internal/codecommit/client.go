@@ -12,6 +12,8 @@ type PRMetadata struct {
 	AuthorARN         string
 	SourceBranch      string
 	DestinationBranch string
+	SourceCommit      string
+	DestinationCommit string
 	Status            string
 	CreationDate      time.Time
 }
@@ -28,5 +30,5 @@ type Comment struct {
 // Client defines the interface for interacting with AWS CodeCommit.
 type Client interface {
 	GetPRMetadata(ctx context.Context, repo, prID string) (PRMetadata, error)
-	GetPRComments(ctx context.Context, repo, prID string) ([]Comment, error)
+	GetPRComments(ctx context.Context, repo, prID, beforeCommit, afterCommit string) ([]Comment, error)
 }
