@@ -53,6 +53,12 @@ ccpr review <codecommit-pr-url> --patch  # Diff only
 3. `AWS_PROFILE` environment variable
 4. default
 
+## Using with Claude Code
+
+For AWS CodeCommit repositories, you can use `ccpr` to provide PR data to Claude Code.
+
+See [docs/claude-integration.md](docs/claude-integration.md) for setup instructions.
+
 ## Development
 
 ```bash
