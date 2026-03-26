@@ -1,7 +1,9 @@
+VERSION ?= $(shell git describe --tags --always --dirty)
+
 .PHONY: build test vet lint clean
 
 build:
-	go build -o bin/ccpr ./cmd/ccpr
+	go build -ldflags "-X main.version=$(VERSION)" -o bin/ccpr ./cmd/ccpr
 
 test:
 	go test ./... -v -race
