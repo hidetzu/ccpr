@@ -1,5 +1,13 @@
 package config
 
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"gopkg.in/yaml.v3"
+)
+
 // Config holds application configuration loaded from file.
 type Config struct {
 	RepoMappings map[string]string `yaml:"repoMappings"`
@@ -11,11 +19,43 @@ type Config struct {
 //  2. .ccpr.yaml in current directory
 //  3. ~/.config/ccpr/config.yaml
 func Load(path string) (*Config, error) {
-	panic("not implemented")
+	if path != "" {
+		return loadFrom(path)
+	}
+
+	candidates := []string{".ccpr.yaml"}
+	if home, err := os.UserHomeDir(); err == nil {
+		candidates = append(candidates, filepath.Join(home, ".config", "ccpr", "config.yaml"))
+	}
+
+	for _, c := range candidates {
+		if _, err := os.Stat(c); err == nil {
+			return loadFrom(c)
+		}
+	}
+
+	return nil, fmt.Errorf("config file not found (searched .ccpr.yaml and ~/.config/ccpr/config.yaml)")
 }
 
 // ResolveRepoPath returns the local filesystem path for a CodeCommit repository name.
 // Returns an error if no mapping is configured for the given name.
 func (c *Config) ResolveRepoPath(repoName string) (string, error) {
-	panic("not implemented")
+	path, ok := c.RepoMappings[repoName]
+	if !ok {
+		return "", fmt.Errorf("no local path mapping for repository %q", repoName)
+	}
+	return path, nil
+}
+
+func loadFrom(path string) (*Config, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading config %s: %w", path, err)
+	}
+
+	var cfg Config
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return nil, fmt.Errorf("parsing config %s: %w", path, err)
+	}
+	return &cfg, nil
 }
