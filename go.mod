@@ -1,4 +1,4 @@
-module github.com/kawashima/ccpr
+module github.com/hidetzu/ccpr
 
 go 1.26.1
 

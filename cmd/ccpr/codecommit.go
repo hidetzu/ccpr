@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
-	"github.com/kawashima/ccpr/internal/codecommit"
-	"github.com/kawashima/ccpr/internal/output"
+	"github.com/hidetzu/ccpr/internal/codecommit"
+	"github.com/hidetzu/ccpr/internal/output"
 )
 
 // newCodeCommitClient creates a CodeCommit client for the given region and profile.

@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kawashima/ccpr/internal/config"
-	"github.com/kawashima/ccpr/internal/diff"
-	"github.com/kawashima/ccpr/internal/output"
-	"github.com/kawashima/ccpr/internal/parser"
+	"github.com/hidetzu/ccpr/internal/config"
+	"github.com/hidetzu/ccpr/internal/diff"
+	"github.com/hidetzu/ccpr/internal/output"
+	"github.com/hidetzu/ccpr/internal/parser"
 )
 
 func runReview(args []string) error {
