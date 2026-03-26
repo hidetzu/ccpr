@@ -18,10 +18,18 @@ It takes a CodeCommit PR URL as input, fetches metadata, comments, and diffs, an
 - Generate git-based diff (patch)
 - Output AI-ready JSON for review
 
-## Example
+## Install
 
 ```bash
-ccpr review <codecommit-pr-url> --json
+go install github.com/hidetzu/ccpr/cmd/ccpr@latest
+```
+
+## Usage
+
+```bash
+ccpr review <codecommit-pr-url>          # Summary (default)
+ccpr review <codecommit-pr-url> --json   # JSON for AI tools
+ccpr review <codecommit-pr-url> --patch  # Diff only
 ```
 
 ## Why
