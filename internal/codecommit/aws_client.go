@@ -61,8 +61,42 @@ func (c *AWSClient) GetPRMetadata(ctx context.Context, repo, prID string) (PRMet
 }
 
 func (c *AWSClient) GetPRComments(ctx context.Context, repo, prID string) ([]Comment, error) {
-	// TODO: implement in next step
-	return nil, fmt.Errorf("GetPRComments not yet implemented")
+	paginator := cc.NewGetCommentsForPullRequestPaginator(c.client, &cc.GetCommentsForPullRequestInput{
+		PullRequestId: aws.String(prID),
+		RepositoryName: aws.String(repo),
+	})
+
+	var comments []Comment
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("GetCommentsForPullRequest: %w", err)
+		}
+
+		for _, group := range page.CommentsForPullRequestData {
+			filePath := ""
+			if group.Location != nil {
+				filePath = deref(group.Location.FilePath)
+			}
+
+			for _, c := range group.Comments {
+				if c.Deleted {
+					continue
+				}
+				comment := Comment{
+					Author:   deref(c.AuthorArn),
+					Content:  deref(c.Content),
+					FilePath: filePath,
+				}
+				if c.CreationDate != nil {
+					comment.Timestamp = *c.CreationDate
+				}
+				comments = append(comments, comment)
+			}
+		}
+	}
+
+	return comments, nil
 }
 
 func deref(s *string) string {
