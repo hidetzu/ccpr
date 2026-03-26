@@ -1,6 +1,6 @@
 # ccpr
 
-![CI](https://github.com/yourname/ccpr/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/hidetzu/ccpr/actions/workflows/ci.yml/badge.svg)
 
 Turn a CodeCommit PR URL into an AI-ready review in one command.
 
@@ -29,6 +29,14 @@ ccpr review <codecommit-pr-url> --json
 AWS CodeCommit does not provide a developer-friendly CLI experience like `gh` for GitHub.
 
 ccpr fills that gap by providing a simple, URL-driven workflow optimized for AI-assisted code review.
+
+## Development
+
+```bash
+make build
+make test
+make lint
+```
 
 ## Status
 
