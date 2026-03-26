@@ -71,8 +71,11 @@ func runReview(args []string) error {
 	}
 
 	// Fetch PR metadata and comments
-	cc := newCodeCommitClient(region)
 	ctx := context.Background()
+	cc, err := newCodeCommitClient(ctx, region)
+	if err != nil {
+		return fmt.Errorf("creating CodeCommit client: %w", err)
+	}
 
 	metadata, err := cc.GetPRMetadata(ctx, repo, prID)
 	if err != nil {

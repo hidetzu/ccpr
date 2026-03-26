@@ -1,15 +1,15 @@
 package main
 
 import (
+	"context"
+
 	"github.com/kawashima/ccpr/internal/codecommit"
 	"github.com/kawashima/ccpr/internal/output"
 )
 
 // newCodeCommitClient creates a CodeCommit client for the given region.
-// TODO: replace stub with real AWS SDK implementation.
-func newCodeCommitClient(region string) codecommit.Client {
-	_ = region
-	panic("codecommit client not yet implemented")
+func newCodeCommitClient(ctx context.Context, region string) (codecommit.Client, error) {
+	return codecommit.NewAWSClient(ctx, region)
 }
 
 func convertComments(src []codecommit.Comment) []output.Comment {
