@@ -63,7 +63,7 @@ type Client interface {
 //
 // Steps:
 //   1. Resolve merge-base: git merge-base <dest> <source>
-//   2. Generate diff:      git diff <merge-base>...<source>
+//   2. Generate diff:      git diff <merge-base> origin/<source>
 //
 // This ensures the diff only contains changes introduced by the source branch,
 // excluding unrelated changes merged into the destination after the branch point.
@@ -119,9 +119,12 @@ Built with standard `flag` package or a lightweight CLI library (e.g., cobra).
 ```
 ccpr review <url> [flags]
 
-Flags:
-  --json       Output as JSON (default)
+Output (default: summary):
+  --json       Output as JSON (for AI tools / scripts)
   --patch      Output diff only in unified patch format
+
+Flags:
+  --profile    AWS profile name
   --repo       Repository name (alternative to URL)
   --region     AWS region (alternative to URL)
   --pr-id      Pull request ID (alternative to URL)
