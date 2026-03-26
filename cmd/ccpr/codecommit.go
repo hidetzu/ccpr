@@ -7,9 +7,9 @@ import (
 	"github.com/kawashima/ccpr/internal/output"
 )
 
-// newCodeCommitClient creates a CodeCommit client for the given region.
-func newCodeCommitClient(ctx context.Context, region string) (codecommit.Client, error) {
-	return codecommit.NewAWSClient(ctx, region)
+// newCodeCommitClient creates a CodeCommit client for the given region and profile.
+func newCodeCommitClient(ctx context.Context, region, profile string) (codecommit.Client, error) {
+	return codecommit.NewAWSClient(ctx, region, profile)
 }
 
 func convertComments(src []codecommit.Comment) []output.Comment {

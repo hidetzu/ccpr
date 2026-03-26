@@ -10,7 +10,23 @@ import (
 
 // Config holds application configuration loaded from file.
 type Config struct {
+	Profile      string            `yaml:"profile"`
 	RepoMappings map[string]string `yaml:"repoMappings"`
+}
+
+// ResolveProfile returns the AWS profile to use.
+// Priority: flagProfile > config file > AWS_PROFILE env > "default".
+func (c *Config) ResolveProfile(flagProfile string) string {
+	if flagProfile != "" {
+		return flagProfile
+	}
+	if c.Profile != "" {
+		return c.Profile
+	}
+	if env := os.Getenv("AWS_PROFILE"); env != "" {
+		return env
+	}
+	return ""
 }
 
 // Load searches for a configuration file and returns the parsed Config.

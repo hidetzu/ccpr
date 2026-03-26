@@ -14,9 +14,16 @@ type AWSClient struct {
 	client *cc.Client
 }
 
-// NewAWSClient creates a new CodeCommit client for the given region.
-func NewAWSClient(ctx context.Context, region string) (*AWSClient, error) {
-	cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(region))
+// NewAWSClient creates a new CodeCommit client for the given region and profile.
+// If profile is empty, the default credential chain is used.
+func NewAWSClient(ctx context.Context, region, profile string) (*AWSClient, error) {
+	opts := []func(*awsconfig.LoadOptions) error{
+		awsconfig.WithRegion(region),
+	}
+	if profile != "" {
+		opts = append(opts, awsconfig.WithSharedConfigProfile(profile))
+	}
+	cfg, err := awsconfig.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("loading AWS config: %w", err)
 	}
@@ -48,11 +55,13 @@ func (c *AWSClient) GetPRMetadata(ctx context.Context, repo, prID string) (PRMet
 		meta.CreationDate = *pr.CreationDate
 	}
 
-	// Extract branch info from the first target matching the repo
+	// Extract branch and commit info from the first target matching the repo
 	for _, t := range pr.PullRequestTargets {
 		if deref(t.RepositoryName) == repo {
 			meta.SourceBranch = stripRefsHeads(deref(t.SourceReference))
 			meta.DestinationBranch = stripRefsHeads(deref(t.DestinationReference))
+			meta.SourceCommit = deref(t.SourceCommit)
+			meta.DestinationCommit = deref(t.DestinationCommit)
 			break
 		}
 	}
@@ -60,10 +69,12 @@ func (c *AWSClient) GetPRMetadata(ctx context.Context, repo, prID string) (PRMet
 	return meta, nil
 }
 
-func (c *AWSClient) GetPRComments(ctx context.Context, repo, prID string) ([]Comment, error) {
+func (c *AWSClient) GetPRComments(ctx context.Context, repo, prID, beforeCommit, afterCommit string) ([]Comment, error) {
 	paginator := cc.NewGetCommentsForPullRequestPaginator(c.client, &cc.GetCommentsForPullRequestInput{
-		PullRequestId: aws.String(prID),
+		PullRequestId:  aws.String(prID),
 		RepositoryName: aws.String(repo),
+		BeforeCommitId: aws.String(beforeCommit),
+		AfterCommitId:  aws.String(afterCommit),
 	})
 
 	var comments []Comment

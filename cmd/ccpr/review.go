@@ -21,7 +21,8 @@ func runReview(args []string) error {
 		flagRepo   string
 		flagRegion string
 		flagPRId   string
-		flagConfig string
+		flagConfig  string
+		flagProfile string
 	)
 
 	fs.BoolVar(&flagJSON, "json", false, "Output as JSON (default)")
@@ -30,6 +31,7 @@ func runReview(args []string) error {
 	fs.StringVar(&flagRegion, "region", "", "AWS region")
 	fs.StringVar(&flagPRId, "pr-id", "", "Pull request ID")
 	fs.StringVar(&flagConfig, "config", "", "Path to configuration file")
+	fs.StringVar(&flagProfile, "profile", "", "AWS profile name")
 
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -70,9 +72,12 @@ func runReview(args []string) error {
 		return err
 	}
 
+	// Resolve AWS profile
+	profile := cfg.ResolveProfile(flagProfile)
+
 	// Fetch PR metadata and comments
 	ctx := context.Background()
-	cc, err := newCodeCommitClient(ctx, region)
+	cc, err := newCodeCommitClient(ctx, region, profile)
 	if err != nil {
 		return fmt.Errorf("creating CodeCommit client: %w", err)
 	}
@@ -82,7 +87,7 @@ func runReview(args []string) error {
 		return fmt.Errorf("fetching PR metadata: %w", err)
 	}
 
-	comments, err := cc.GetPRComments(ctx, repo, prID)
+	comments, err := cc.GetPRComments(ctx, repo, prID, metadata.DestinationCommit, metadata.SourceCommit)
 	if err != nil {
 		return fmt.Errorf("fetching PR comments: %w", err)
 	}

@@ -88,6 +88,16 @@ repoMappings:
 
 ---
 
+### FR-08 AWS Profile Resolution
+
+- Resolve AWS profile in the following order:
+  1. `--profile` flag (explicit)
+  2. `profile` field in config file
+  3. `AWS_PROFILE` environment variable
+  4. default
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-01 CLI Behavior
