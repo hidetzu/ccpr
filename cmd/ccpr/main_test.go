@@ -4,6 +4,20 @@ import (
 	"testing"
 )
 
+func TestRun_Version(t *testing.T) {
+	err := run([]string{"--version"})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
+func TestRun_VersionSubcommand(t *testing.T) {
+	err := run([]string{"version"})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
+
 func TestRun_NoArgs(t *testing.T) {
 	err := run([]string{})
 	if err == nil {
