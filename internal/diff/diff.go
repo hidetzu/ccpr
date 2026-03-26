@@ -32,8 +32,8 @@ func (g *GitGenerator) GenerateDiff(repoPath, sourceBranch, destBranch string) (
 		return "", fmt.Errorf("git merge-base: %w", err)
 	}
 
-	// Step 3: generate diff
-	diff, err := g.gitOutput(repoPath, "diff", mergeBase+"...origin/"+sourceBranch)
+	// Step 3: generate diff (two-arg form: merge-base vs source tip)
+	diff, err := g.gitOutput(repoPath, "diff", mergeBase, "origin/"+sourceBranch)
 	if err != nil {
 		return "", fmt.Errorf("git diff: %w", err)
 	}
