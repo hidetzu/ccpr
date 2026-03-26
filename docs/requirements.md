@@ -52,11 +52,24 @@ Constraints (MVP):
 
 ---
 
-### FR-05 JSON Output
+### FR-05 Summary Output (default)
 
+- Default output mode when no format flag is specified
+- Display human-readable summary:
+  - PR title, author, status, branches, creation date
+  - Comment count
+  - Changed files count
+- Designed for CLI users
+
+---
+
+### FR-06 JSON Output
+
+- Triggered by `--json` flag
 - Combine metadata, comments, and diff
 - Output as a single JSON document
 - JSON schema must be stable
+- Designed for AI tools and script integration
 
 Constraints:
 - Field names must not change without versioning
@@ -64,17 +77,17 @@ Constraints:
 
 ---
 
-### FR-06 Patch Output
+### FR-07 Patch Output
 
-- Support `--patch`
+- Triggered by `--patch` flag
 - Output raw diff only
 
 Constraints:
-- Mutually exclusive with `--json`
+- `--json`, `--patch` are mutually exclusive
 
 ---
 
-### FR-07 Local Repository Resolution
+### FR-08 Local Repository Resolution
 
 - Map repository name to local filesystem path
 - Configuration file defines mapping
@@ -88,7 +101,7 @@ repoMappings:
 
 ---
 
-### FR-08 AWS Profile Resolution
+### FR-09 AWS Profile Resolution
 
 - Resolve AWS profile in the following order:
   1. `--profile` flag (explicit)

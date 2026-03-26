@@ -99,14 +99,10 @@ func runReview(args []string) error {
 		return fmt.Errorf("generating diff: %w", err)
 	}
 
-	// Output
-	if flagPatch {
-		f := &output.PatchFormatter{}
-		return f.FormatPatch(os.Stdout, diffText)
-	}
-
+	// Build review output
 	review := output.ReviewOutput{
 		Metadata: output.PRMetadata{
+			PRId:              prID,
 			Title:             metadata.Title,
 			Description:       metadata.Description,
 			AuthorARN:         metadata.AuthorARN,
@@ -119,6 +115,13 @@ func runReview(args []string) error {
 		Diff:     diffText,
 	}
 
-	f := &output.JSONFormatter{}
-	return f.FormatJSON(os.Stdout, review)
+	// Output
+	switch {
+	case flagPatch:
+		return output.FormatPatch(os.Stdout, diffText)
+	case flagJSON:
+		return output.FormatJSON(os.Stdout, review)
+	default:
+		return output.FormatSummary(os.Stdout, review)
+	}
 }

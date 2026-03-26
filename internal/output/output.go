@@ -2,7 +2,9 @@ package output
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -16,6 +18,7 @@ type ReviewOutput struct {
 
 // PRMetadata is the JSON-serializable representation of PR metadata.
 type PRMetadata struct {
+	PRId              string `json:"prId"`
 	Title             string `json:"title"`
 	Description       string `json:"description"`
 	AuthorARN         string `json:"authorArn"`
@@ -33,39 +36,62 @@ type Comment struct {
 	FilePath  string    `json:"filePath,omitempty"`
 }
 
-// Formatter defines the interface for writing review output.
-type Formatter interface {
-	// FormatJSON serializes ReviewOutput as JSON and writes to w.
-	FormatJSON(w io.Writer, output ReviewOutput) error
-
-	// FormatPatch writes the raw unified diff to w.
-	FormatPatch(w io.Writer, diff string) error
-}
-
-// JSONFormatter implements JSON output.
-type JSONFormatter struct{}
-
-func (f *JSONFormatter) FormatJSON(w io.Writer, output ReviewOutput) error {
+// FormatJSON serializes ReviewOutput as JSON and writes to w.
+func FormatJSON(w io.Writer, output ReviewOutput) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	return enc.Encode(output)
 }
 
-func (f *JSONFormatter) FormatPatch(w io.Writer, diff string) error {
+// FormatPatch writes the raw unified diff to w.
+func FormatPatch(w io.Writer, diff string) error {
 	_, err := io.WriteString(w, diff)
 	return err
 }
 
-// PatchFormatter implements patch-only output.
-type PatchFormatter struct{}
+// FormatSummary writes a human-readable summary to w.
+func FormatSummary(w io.Writer, output ReviewOutput) error {
+	m := output.Metadata
 
-func (f *PatchFormatter) FormatJSON(w io.Writer, output ReviewOutput) error {
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "  ")
-	return enc.Encode(output)
+	// Extract short author name from ARN (last segment after /)
+	author := m.AuthorARN
+	if i := strings.LastIndex(author, "/"); i >= 0 {
+		author = author[i+1:]
+	}
+
+	// Count changed files from diff
+	filesChanged := countChangedFiles(output.Diff)
+
+	fmt.Fprintf(w, "PR #%s: %s\n", m.PRId, m.Title)
+	fmt.Fprintf(w, "Author:   %s\n", author)
+	fmt.Fprintf(w, "Status:   %s\n", m.Status)
+	fmt.Fprintf(w, "Branch:   %s → %s\n", m.SourceBranch, m.DestinationBranch)
+	fmt.Fprintf(w, "Created:  %s\n", formatDate(m.CreationDate))
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "Comments: %d\n", len(output.Comments))
+	fmt.Fprintf(w, "Files:    %d changed\n", filesChanged)
+
+	if m.Description != "" {
+		fmt.Fprintf(w, "\n## Description\n\n%s\n", m.Description)
+	}
+
+	return nil
 }
 
-func (f *PatchFormatter) FormatPatch(w io.Writer, diff string) error {
-	_, err := io.WriteString(w, diff)
-	return err
+func countChangedFiles(diff string) int {
+	count := 0
+	for _, line := range strings.Split(diff, "\n") {
+		if strings.HasPrefix(line, "diff --git ") {
+			count++
+		}
+	}
+	return count
+}
+
+func formatDate(raw string) string {
+	t, err := time.Parse("2006-01-02T15:04:05Z", raw)
+	if err != nil {
+		return raw
+	}
+	return t.Format("2006-01-02 15:04")
 }
