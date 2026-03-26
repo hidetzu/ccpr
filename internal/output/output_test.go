@@ -1,0 +1,116 @@
+package output
+
+import (
+	"bytes"
+	"encoding/json"
+	"strings"
+	"testing"
+	"time"
+)
+
+var testOutput = ReviewOutput{
+	Metadata: PRMetadata{
+		PRId:              "42",
+		Title:             "Fix login bug",
+		Description:       "Fixes timeout on login",
+		AuthorARN:         "arn:aws:iam::123:user/dev",
+		SourceBranch:      "fix/login",
+		DestinationBranch: "main",
+		Status:            "OPEN",
+		CreationDate:      "2026-01-15T10:30:00Z",
+	},
+	Comments: []Comment{
+		{
+			Author:    "reviewer",
+			Content:   "Looks good",
+			Timestamp: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
+		},
+		{
+			Author:    "reviewer",
+			Content:   "Check this file",
+			Timestamp: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
+			FilePath:  "src/login.go",
+		},
+	},
+	Diff: "diff --git a/file1 b/file1\n--- a/file1\n+++ b/file1\n@@ -1 +1 @@\n-old\n+new\ndiff --git a/file2 b/file2\n--- a/file2\n+++ b/file2\n@@ -1 +1 @@\n-foo\n+bar\n",
+}
+
+func TestFormatJSON(t *testing.T) {
+	var buf bytes.Buffer
+	if err := FormatJSON(&buf, testOutput); err != nil {
+		t.Fatalf("FormatJSON() error: %v", err)
+	}
+
+	var parsed ReviewOutput
+	if err := json.Unmarshal(buf.Bytes(), &parsed); err != nil {
+		t.Fatalf("output is not valid JSON: %v", err)
+	}
+
+	if parsed.Metadata.Title != "Fix login bug" {
+		t.Errorf("title = %q, want %q", parsed.Metadata.Title, "Fix login bug")
+	}
+	if len(parsed.Comments) != 2 {
+		t.Errorf("comments count = %d, want 2", len(parsed.Comments))
+	}
+	if parsed.Comments[1].FilePath != "src/login.go" {
+		t.Errorf("comment[1].filePath = %q, want %q", parsed.Comments[1].FilePath, "src/login.go")
+	}
+
+	if bytes.Contains(buf.Bytes(), []byte(`"filePath":""`)) {
+		t.Error("empty filePath should be omitted from JSON")
+	}
+}
+
+func TestFormatPatch(t *testing.T) {
+	diff := "--- a/file\n+++ b/file\n@@ -1 +1 @@\n-old\n+new\n"
+
+	var buf bytes.Buffer
+	if err := FormatPatch(&buf, diff); err != nil {
+		t.Fatalf("FormatPatch() error: %v", err)
+	}
+
+	if buf.String() != diff {
+		t.Errorf("output = %q, want %q", buf.String(), diff)
+	}
+}
+
+func TestFormatSummary(t *testing.T) {
+	var buf bytes.Buffer
+	if err := FormatSummary(&buf, testOutput); err != nil {
+		t.Fatalf("FormatSummary() error: %v", err)
+	}
+
+	got := buf.String()
+
+	checks := []string{
+		"PR #42: Fix login bug",
+		"Author:   dev",
+		"Status:   OPEN",
+		"Branch:   fix/login → main",
+		"Created:  2026-01-15 10:30",
+		"Comments: 2",
+		"Files:    2 changed",
+		"## Description",
+		"Fixes timeout on login",
+	}
+
+	for _, want := range checks {
+		if !strings.Contains(got, want) {
+			t.Errorf("summary missing %q\ngot:\n%s", want, got)
+		}
+	}
+}
+
+func TestFormatSummary_NoDescription(t *testing.T) {
+	out := testOutput
+	out.Metadata.Description = ""
+
+	var buf bytes.Buffer
+	if err := FormatSummary(&buf, out); err != nil {
+		t.Fatalf("FormatSummary() error: %v", err)
+	}
+
+	if strings.Contains(buf.String(), "Description") {
+		t.Error("summary should not show description section when empty")
+	}
+}
