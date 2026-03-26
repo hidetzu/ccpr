@@ -1,6 +1,7 @@
 package output
 
 import (
+	"encoding/json"
 	"io"
 	"time"
 )
@@ -39,4 +40,32 @@ type Formatter interface {
 
 	// FormatPatch writes the raw unified diff to w.
 	FormatPatch(w io.Writer, diff string) error
+}
+
+// JSONFormatter implements JSON output.
+type JSONFormatter struct{}
+
+func (f *JSONFormatter) FormatJSON(w io.Writer, output ReviewOutput) error {
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(output)
+}
+
+func (f *JSONFormatter) FormatPatch(w io.Writer, diff string) error {
+	_, err := io.WriteString(w, diff)
+	return err
+}
+
+// PatchFormatter implements patch-only output.
+type PatchFormatter struct{}
+
+func (f *PatchFormatter) FormatJSON(w io.Writer, output ReviewOutput) error {
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(output)
+}
+
+func (f *PatchFormatter) FormatPatch(w io.Writer, diff string) error {
+	_, err := io.WriteString(w, diff)
+	return err
 }
