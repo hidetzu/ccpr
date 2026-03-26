@@ -4,7 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-ccpr is a Go CLI tool that takes an AWS CodeCommit PR URL, fetches metadata/comments/diffs, and outputs AI-ready JSON for code review. It is in early MVP stage — no Go source files exist yet.
+ccpr is a local helper CLI that replaces `gh` for CodeCommit-based review workflows with Claude Code.
+
+It takes a CodeCommit PR URL, fetches metadata/comments/diffs, and outputs structured data for AI-assisted code review. This is not an official CodeCommit integration — it exists to bridge the gap between CodeCommit and AI review tools.
+
+## Intended Workflow
+
+```
+ccpr review <codecommit-pr-url>          # Summary for humans
+ccpr review <codecommit-pr-url> --json   # JSON for Claude Code / AI tools
+ccpr review <codecommit-pr-url> --patch  # Diff only
+```
+
+The primary use case: developer runs `ccpr review <url> --json`, passes the output to Claude Code, and Claude generates review comments from it. Do not search for an official Claude Code ↔ CodeCommit integration — this repository is that bridge.
 
 ## Development Rules
 
@@ -14,7 +26,7 @@ ccpr is a Go CLI tool that takes an AWS CodeCommit PR URL, fetches metadata/comm
   - docs/use-cases.md
   - docs/requirements.md
   - docs/spec.md
-    before writing implementation code
+  before writing implementation code
 
 ## MVP Scope
 
@@ -24,7 +36,7 @@ Focus only on:
 - Fetching PR metadata
 - Fetching comments
 - Generating git-based diff
-- Outputting review JSON
+- Outputting review JSON / summary / patch
 
 Out of scope (for now):
 
@@ -58,27 +70,25 @@ All commands should accept:
 - Full PR URL (preferred)
 - Optional flags for repo/region/pr-id (secondary)
 
+## AWS Profile Resolution
+
+Priority order:
+1. `--profile` flag (explicit)
+2. `profile` field in config file (`~/.config/ccpr/config.yaml`)
+3. `AWS_PROFILE` environment variable
+4. default
+
 ## Build & Development Commands
 
 ```bash
-go build ./...          # Build all packages
-go test ./... -v -race  # Run all tests with race detection
+make build              # Build binary to bin/ccpr
+make test               # Run all tests with -v -race
+make lint               # golangci-lint v2.11.4
+make vet                # go vet
+make clean              # Remove bin/
 go test ./path/to/pkg -run TestName -v  # Run a single test
-go vet ./...            # Static analysis
-```
-
-Lint is run via golangci-lint v2.11.4 (see CI config):
-
-```bash
-golangci-lint run
 ```
 
 ## CI
 
 GitHub Actions runs on push/PR to main: build, test (`-race`), vet, and golangci-lint. Go version is read from `go.mod`.
-
-## CLI Interface (planned)
-
-```bash
-ccpr review <codecommit-pr-url> --json
-```
