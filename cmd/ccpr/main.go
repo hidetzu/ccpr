@@ -3,10 +3,22 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 )
 
 // version is set via ldflags at build time.
-var version = "dev"
+// Falls back to module version from BuildInfo (go install).
+var version = ""
+
+func getVersion() string {
+	if version != "" {
+		return version
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+		return info.Main.Version
+	}
+	return "dev"
+}
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
@@ -24,7 +36,8 @@ func run(args []string) error {
 	case "review":
 		return runReview(args[1:])
 	case "--version", "version":
-		fmt.Printf("ccpr version %s\nhttps://github.com/hidetzu/ccpr/releases/tag/%s\n", version, version)
+		v := getVersion()
+		fmt.Printf("ccpr version %s\nhttps://github.com/hidetzu/ccpr/releases/tag/%s\n", v, v)
 		return nil
 	default:
 		return fmt.Errorf("unknown command: %s", args[0])
