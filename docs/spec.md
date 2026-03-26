@@ -149,12 +149,12 @@ The diff is generated locally using a merge-base approach:
         D---E    (source)
 
   merge-base = A
-  diff = git diff A...E
+  diff = git diff A origin/source
 ```
 
 1. **Fetch latest refs**: `git fetch origin <source> <dest>`
 2. **Find merge-base**: `git merge-base origin/<dest> origin/<source>`
-3. **Generate diff**: `git diff <merge-base>...origin/<source>`
+3. **Generate diff**: `git diff <merge-base> origin/<source>`
 
 This approach:
 - Shows only changes introduced by the source branch
