@@ -33,8 +33,10 @@ func TestLoad_DotCcprYaml(t *testing.T) {
 `)
 
 	orig, _ := os.Getwd()
-	t.Cleanup(func() { os.Chdir(orig) })
-	os.Chdir(dir)
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
 
 	cfg, err := Load("")
 	if err != nil {
@@ -49,8 +51,10 @@ func TestLoad_FileNotFound(t *testing.T) {
 	dir := t.TempDir()
 
 	orig, _ := os.Getwd()
-	t.Cleanup(func() { os.Chdir(orig) })
-	os.Chdir(dir)
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
 
 	// Override home to empty dir so ~/.config/ccpr/config.yaml also doesn't exist
 	t.Setenv("HOME", dir)

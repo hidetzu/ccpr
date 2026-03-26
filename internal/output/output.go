@@ -62,17 +62,32 @@ func FormatSummary(w io.Writer, output ReviewOutput) error {
 	// Count changed files from diff
 	filesChanged := countChangedFiles(output.Diff)
 
-	fmt.Fprintf(w, "PR #%s: %s\n", m.PRId, m.Title)
-	fmt.Fprintf(w, "Author:   %s\n", author)
-	fmt.Fprintf(w, "Status:   %s\n", m.Status)
-	fmt.Fprintf(w, "Branch:   %s → %s\n", m.SourceBranch, m.DestinationBranch)
-	fmt.Fprintf(w, "Created:  %s\n", formatDate(m.CreationDate))
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "Comments: %d\n", len(output.Comments))
-	fmt.Fprintf(w, "Files:    %d changed\n", filesChanged)
+	if _, err := fmt.Fprintf(w, "PR #%s: %s\n", m.PRId, m.Title); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "Author:   %s\n", author); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "Status:   %s\n", m.Status); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "Branch:   %s → %s\n", m.SourceBranch, m.DestinationBranch); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "Created:  %s\n", formatDate(m.CreationDate)); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "\nComments: %d\n", len(output.Comments)); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "Files:    %d changed\n", filesChanged); err != nil {
+		return err
+	}
 
 	if m.Description != "" {
-		fmt.Fprintf(w, "\n## Description\n\n%s\n", m.Description)
+		if _, err := fmt.Fprintf(w, "\n## Description\n\n%s\n", m.Description); err != nil {
+			return err
+		}
 	}
 
 	return nil
