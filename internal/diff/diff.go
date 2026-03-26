@@ -18,7 +18,10 @@ type Generator interface {
 }
 
 // GitGenerator implements Generator using local Git commands.
-type GitGenerator struct{}
+// cmdLog records git commands executed (populated only in tests via enableCmdLog).
+type GitGenerator struct {
+	cmdLog [][]string
+}
 
 func (g *GitGenerator) GenerateDiff(repoPath, sourceBranch, destBranch string) (string, error) {
 	// Step 1: fetch latest refs
@@ -42,6 +45,9 @@ func (g *GitGenerator) GenerateDiff(repoPath, sourceBranch, destBranch string) (
 }
 
 func (g *GitGenerator) gitRun(dir string, args ...string) error {
+	if g.cmdLog != nil {
+		g.cmdLog = append(g.cmdLog, args)
+	}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
 	out, err := cmd.CombinedOutput()
@@ -52,6 +58,9 @@ func (g *GitGenerator) gitRun(dir string, args ...string) error {
 }
 
 func (g *GitGenerator) gitOutput(dir string, args ...string) (string, error) {
+	if g.cmdLog != nil {
+		g.cmdLog = append(g.cmdLog, args)
+	}
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
 	out, err := cmd.CombinedOutput()

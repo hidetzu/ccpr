@@ -57,6 +57,54 @@ func TestGitGenerator_GenerateDiff(t *testing.T) {
 	}
 }
 
+// TestGitGenerator_DiffUsesTwoArgForm verifies that GenerateDiff calls
+// git diff with two separate args (merge-base and ref), not three-dot syntax.
+func TestGitGenerator_DiffUsesTwoArgForm(t *testing.T) {
+	bare := t.TempDir()
+	git(t, bare, "init", "--bare", "--initial-branch=main")
+
+	work := filepath.Join(t.TempDir(), "work")
+	gitClone(t, bare, work)
+
+	writeFileIn(t, work, "file.txt", "content\n")
+	git(t, work, "add", ".")
+	git(t, work, "commit", "-m", "initial")
+	git(t, work, "push", "origin", "main")
+
+	git(t, work, "checkout", "-b", "feature")
+	writeFileIn(t, work, "new.txt", "new\n")
+	git(t, work, "add", ".")
+	git(t, work, "commit", "-m", "feature")
+	git(t, work, "push", "origin", "feature")
+
+	clone := filepath.Join(t.TempDir(), "clone")
+	gitClone(t, bare, clone)
+
+	gen := &GitGenerator{cmdLog: [][]string{}}
+	_, err := gen.GenerateDiff(clone, "feature", "main")
+	if err != nil {
+		t.Fatalf("GenerateDiff() error: %v", err)
+	}
+
+	// Find the git diff command in the log
+	for _, args := range gen.cmdLog {
+		if len(args) >= 1 && args[0] == "diff" {
+			// Must be ["diff", "<hash>", "origin/feature"] — two args, no "..."
+			if len(args) != 3 {
+				t.Fatalf("expected git diff with 3 args, got %v", args)
+			}
+			if containsString(args[1], "...") {
+				t.Errorf("git diff should not use three-dot syntax, got args: %v", args)
+			}
+			if args[2] != "origin/feature" {
+				t.Errorf("expected second arg origin/feature, got %q", args[2])
+			}
+			return
+		}
+	}
+	t.Fatal("git diff command not found in command log")
+}
+
 func TestGitGenerator_InvalidRepo(t *testing.T) {
 	gen := &GitGenerator{}
 	_, err := gen.GenerateDiff(t.TempDir(), "feature", "main")
