@@ -28,15 +28,16 @@ The primary use case: developer runs `ccpr review <url> --json`, passes the outp
   - docs/spec.md
   before writing implementation code
 
-## MVP Scope
+## Scope
 
-Focus only on:
+MVP implemented:
 
 - PR URL parsing
-- Fetching PR metadata
-- Fetching comments
-- Generating git-based diff
-- Outputting review JSON / summary / patch
+- Fetching PR metadata and comments
+- Generating git-based diff (merge-base strategy)
+- Output: summary (default), JSON (`--json`), patch (`--patch`)
+- AWS profile resolution (`--profile` > config > env > default)
+- Config file with repo mappings
 
 Out of scope (for now):
 
