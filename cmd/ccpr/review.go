@@ -33,7 +33,10 @@ func runReview(args []string) error {
 	fs.StringVar(&flagConfig, "config", "", "Path to configuration file")
 	fs.StringVar(&flagProfile, "profile", "", "AWS profile name")
 
-	if err := fs.Parse(args); err != nil {
+	// Reorder args so flags come first, allowing "ccpr review <url> --json".
+	// Go's flag package stops parsing at the first non-flag argument.
+	reordered := reorderArgs(args)
+	if err := fs.Parse(reordered); err != nil {
 		return err
 	}
 
@@ -124,4 +127,43 @@ func runReview(args []string) error {
 	default:
 		return output.FormatSummary(os.Stdout, review)
 	}
+}
+
+// reorderArgs moves flags before positional args so Go's flag package
+// can parse all flags regardless of where the URL is placed.
+// Handles both "-flag value" and "-flag=value" forms.
+func reorderArgs(args []string) []string {
+	var flags, positional []string
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		if len(a) > 0 && a[0] == '-' {
+			flags = append(flags, a)
+			// If this flag has a separate value (not bool, not =), consume next arg
+			if !isBoolFlag(a) && !containsEquals(a) && i+1 < len(args) {
+				i++
+				flags = append(flags, args[i])
+			}
+		} else {
+			positional = append(positional, a)
+		}
+	}
+	return append(flags, positional...)
+}
+
+var boolFlags = map[string]bool{
+	"-json": true, "--json": true,
+	"-patch": true, "--patch": true,
+}
+
+func isBoolFlag(s string) bool {
+	return boolFlags[s]
+}
+
+func containsEquals(s string) bool {
+	for _, c := range s {
+		if c == '=' {
+			return true
+		}
+	}
+	return false
 }
