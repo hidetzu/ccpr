@@ -22,16 +22,34 @@ Create `~/.config/ccpr/config.yaml`:
 
 ```yaml
 profile: your-aws-profile
+region: ap-northeast-1
 repoMappings:
   your-repo: /path/to/local/clone
 ```
 
 ## Usage
 
+### Review a PR
+
 ```bash
 ccpr review <codecommit-pr-url>          # Summary (default)
 ccpr review <codecommit-pr-url> --json   # JSON for AI tools
 ccpr review <codecommit-pr-url> --patch  # Diff only
+```
+
+### List PRs
+
+```bash
+ccpr list --repo <repo>                  # OPEN PRs (default)
+ccpr list --repo <repo> --status closed  # CLOSED PRs
+ccpr list --repo <repo> --status all     # All PRs
+ccpr list --repo <repo> --json           # JSON output
+```
+
+### Version
+
+```bash
+ccpr --version
 ```
 
 ### Flags
@@ -40,10 +58,11 @@ ccpr review <codecommit-pr-url> --patch  # Diff only
 --json       Output as JSON
 --patch      Output diff only (mutually exclusive with --json)
 --profile    AWS profile name
+--region     AWS region
 --config     Path to configuration file
---repo       Repository name (alternative to URL)
---region     AWS region (alternative to URL)
---pr-id      Pull request ID (alternative to URL)
+--repo       Repository name
+--pr-id      Pull request ID (review only)
+--status     PR status filter: open, closed, all (list only)
 ```
 
 ### AWS Profile Resolution
@@ -52,6 +71,12 @@ ccpr review <codecommit-pr-url> --patch  # Diff only
 2. `profile` in config file
 3. `AWS_PROFILE` environment variable
 4. default
+
+### AWS Region Resolution
+
+1. PR URL (extracted automatically)
+2. `--region` flag
+3. `region` in config file
 
 ## Using with Claude Code
 
