@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/hidetzu/ccpr/internal/config"
+	"github.com/hidetzu/ccpr/internal/parser"
 )
 
 func runOpen(args []string) error {
@@ -20,21 +21,32 @@ func runOpen(args []string) error {
 		flagProfile string
 	)
 
-	fs.StringVar(&flagRepo, "repo", "", "Repository name (required)")
-	fs.StringVar(&flagPRId, "pr-id", "", "Pull request ID (required)")
+	fs.StringVar(&flagRepo, "repo", "", "Repository name")
+	fs.StringVar(&flagPRId, "pr-id", "", "Pull request ID")
 	fs.StringVar(&flagRegion, "region", "", "AWS region")
 	fs.StringVar(&flagConfig, "config", "", "Path to configuration file")
 	fs.StringVar(&flagProfile, "profile", "", "AWS profile name")
 
-	if err := fs.Parse(args); err != nil {
+	reordered := reorderArgs(args)
+	if err := fs.Parse(reordered); err != nil {
 		return err
 	}
 
-	if flagRepo == "" {
-		return fmt.Errorf("--repo is required for open command")
-	}
-	if flagPRId == "" {
-		return fmt.Errorf("--pr-id is required for open command")
+	var region, repo, prID string
+
+	if url := fs.Arg(0); url != "" {
+		result, err := parser.Parse(url)
+		if err != nil {
+			return fmt.Errorf("invalid PR URL: %w", err)
+		}
+		region = result.Region
+		repo = result.Repository
+		prID = result.PRId
+	} else if flagRepo != "" && flagPRId != "" {
+		repo = flagRepo
+		prID = flagPRId
+	} else {
+		return fmt.Errorf("provide a PR URL or --repo and --pr-id flags")
 	}
 
 	cfg, err := config.Load(flagConfig)
@@ -42,15 +54,17 @@ func runOpen(args []string) error {
 		return fmt.Errorf("config: %w", err)
 	}
 
-	region := cfg.ResolveRegion(flagRegion)
+	if region == "" {
+		region = cfg.ResolveRegion(flagRegion)
+	}
 	if region == "" {
 		return fmt.Errorf("region is required: use --region flag or set region in config file")
 	}
 
-	url := fmt.Sprintf("https://%s.console.aws.amazon.com/codesuite/codecommit/repositories/%s/pull-requests/%s",
-		region, flagRepo, flagPRId)
+	openURL := fmt.Sprintf("https://%s.console.aws.amazon.com/codesuite/codecommit/repositories/%s/pull-requests/%s",
+		region, repo, prID)
 
-	return openBrowser(url)
+	return openBrowser(openURL)
 }
 
 func openBrowser(url string) error {
@@ -63,7 +77,12 @@ func openBrowser(url string) error {
 	case "windows":
 		cmd = exec.Command("cmd", "/c", "start", url)
 	default:
-		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
+		fmt.Println(url)
+		return nil
 	}
-	return cmd.Start()
+	if err := cmd.Start(); err != nil {
+		// Fallback: print URL if browser cannot be opened
+		fmt.Println(url)
+	}
+	return nil
 }
