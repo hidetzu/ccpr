@@ -85,8 +85,19 @@ func FormatSummary(w io.Writer, output ReviewOutput) error {
 	if _, err := fmt.Fprintf(w, "Created:  %s\n", formatDate(m.CreationDate)); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(w, "\nComments: %d\n", len(output.Comments)); err != nil {
-		return err
+	threads := countThreads(output.Comments)
+	if threads > 0 {
+		threadLabel := "threads"
+		if threads == 1 {
+			threadLabel = "thread"
+		}
+		if _, err := fmt.Fprintf(w, "\nComments: %d (%d %s)\n", len(output.Comments), threads, threadLabel); err != nil {
+			return err
+		}
+	} else {
+		if _, err := fmt.Fprintf(w, "\nComments: %d\n", len(output.Comments)); err != nil {
+			return err
+		}
 	}
 	if _, err := fmt.Fprintf(w, "Files:    %d changed\n", filesChanged); err != nil {
 		return err
@@ -99,6 +110,18 @@ func FormatSummary(w io.Writer, output ReviewOutput) error {
 	}
 
 	return nil
+}
+
+// countThreads counts the number of distinct comment threads.
+// A thread is a root comment (no InReplyTo).
+func countThreads(comments []Comment) int {
+	count := 0
+	for _, c := range comments {
+		if c.InReplyTo == "" {
+			count++
+		}
+	}
+	return count
 }
 
 func countChangedFiles(diff string) int {
