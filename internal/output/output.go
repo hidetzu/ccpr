@@ -21,6 +21,7 @@ type PRMetadata struct {
 	PRId              string `json:"prId"`
 	Title             string `json:"title"`
 	Description       string `json:"description"`
+	Author            string `json:"author"`
 	AuthorARN         string `json:"authorArn"`
 	SourceBranch      string `json:"sourceBranch"`
 	DestinationBranch string `json:"destinationBranch"`
@@ -31,9 +32,18 @@ type PRMetadata struct {
 // Comment is the JSON-serializable representation of a PR comment.
 type Comment struct {
 	Author    string    `json:"author"`
+	AuthorARN string    `json:"authorArn"`
 	Content   string    `json:"content"`
 	Timestamp time.Time `json:"timestamp"`
 	FilePath  string    `json:"filePath,omitempty"`
+}
+
+// ShortAuthor extracts the username from an ARN (last segment after /).
+func ShortAuthor(arn string) string {
+	if i := strings.LastIndex(arn, "/"); i >= 0 {
+		return arn[i+1:]
+	}
+	return arn
 }
 
 // FormatJSON serializes ReviewOutput as JSON and writes to w.
@@ -53,11 +63,7 @@ func FormatPatch(w io.Writer, diff string) error {
 func FormatSummary(w io.Writer, output ReviewOutput) error {
 	m := output.Metadata
 
-	// Extract short author name from ARN (last segment after /)
-	author := m.AuthorARN
-	if i := strings.LastIndex(author, "/"); i >= 0 {
-		author = author[i+1:]
-	}
+	author := ShortAuthor(m.AuthorARN)
 
 	// Count changed files from diff
 	filesChanged := countChangedFiles(output.Diff)
