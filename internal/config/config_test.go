@@ -103,6 +103,24 @@ func TestResolveRepoPath_NotMapped(t *testing.T) {
 	}
 }
 
+func TestResolveRegion(t *testing.T) {
+	cfg := &Config{Region: "ap-northeast-1"}
+
+	// Flag takes priority
+	if got := cfg.ResolveRegion("us-east-1"); got != "us-east-1" {
+		t.Errorf("flag priority: got %q, want us-east-1", got)
+	}
+	// Config fallback
+	if got := cfg.ResolveRegion(""); got != "ap-northeast-1" {
+		t.Errorf("config fallback: got %q, want ap-northeast-1", got)
+	}
+	// Empty config, empty flag
+	empty := &Config{}
+	if got := empty.ResolveRegion(""); got != "" {
+		t.Errorf("empty: got %q, want empty", got)
+	}
+}
+
 func writeFile(t *testing.T, path, content string) {
 	t.Helper()
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {

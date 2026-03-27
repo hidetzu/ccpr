@@ -11,7 +11,17 @@ import (
 // Config holds application configuration loaded from file.
 type Config struct {
 	Profile      string            `yaml:"profile"`
+	Region       string            `yaml:"region"`
 	RepoMappings map[string]string `yaml:"repoMappings"`
+}
+
+// ResolveRegion returns the AWS region to use.
+// Priority: flagRegion > config file > "".
+func (c *Config) ResolveRegion(flagRegion string) string {
+	if flagRegion != "" {
+		return flagRegion
+	}
+	return c.Region
 }
 
 // ResolveProfile returns the AWS profile to use.

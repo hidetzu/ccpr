@@ -45,9 +45,9 @@ func runList(args []string) error {
 
 	profile := cfg.ResolveProfile(flagProfile)
 
-	region := flagRegion
+	region := cfg.ResolveRegion(flagRegion)
 	if region == "" {
-		return fmt.Errorf("--region is required (or set region in config file)")
+		return fmt.Errorf("region is required: use --region flag or set region in config file")
 	}
 
 	ctx := context.Background()

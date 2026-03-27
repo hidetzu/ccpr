@@ -56,18 +56,25 @@ func runReview(args []string) error {
 		region = result.Region
 		repo = result.Repository
 		prID = result.PRId
-	} else if flagRepo != "" && flagRegion != "" && flagPRId != "" {
-		region = flagRegion
+	} else if flagRepo != "" && flagPRId != "" {
 		repo = flagRepo
 		prID = flagPRId
 	} else {
-		return fmt.Errorf("provide a PR URL or --repo, --region, and --pr-id flags")
+		return fmt.Errorf("provide a PR URL or --repo and --pr-id flags")
 	}
 
 	// Load config for repo mapping
 	cfg, err := config.Load(flagConfig)
 	if err != nil {
 		return fmt.Errorf("config: %w", err)
+	}
+
+	// Resolve region from flag or config (URL already sets it)
+	if region == "" {
+		region = cfg.ResolveRegion(flagRegion)
+	}
+	if region == "" {
+		return fmt.Errorf("region is required: use --region flag or set region in config file")
 	}
 
 	repoPath, err := cfg.ResolveRepoPath(repo)
