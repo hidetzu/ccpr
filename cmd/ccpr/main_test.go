@@ -32,14 +32,10 @@ func TestRun_UnknownCommand(t *testing.T) {
 	}
 }
 
-func TestRunReview_MutuallyExclusiveFlags(t *testing.T) {
-	err := runReview([]string{"-json", "-patch", "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/repo/pull-requests/1"})
+func TestRunReview_InvalidFormat(t *testing.T) {
+	err := runReview([]string{"-format", "xml", "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/repo/pull-requests/1"})
 	if err == nil {
-		t.Fatal("expected error for mutually exclusive flags")
-	}
-	want := "--json and --patch are mutually exclusive"
-	if err.Error() != want {
-		t.Errorf("error = %q, want %q", err.Error(), want)
+		t.Fatal("expected error for invalid format")
 	}
 }
 
@@ -71,14 +67,14 @@ func TestReorderArgs(t *testing.T) {
 		want []string
 	}{
 		{
-			name: "flags before URL",
-			in:   []string{"-json", "https://example.com"},
-			want: []string{"-json", "https://example.com"},
+			name: "format flag before URL",
+			in:   []string{"-format", "json", "https://example.com"},
+			want: []string{"-format", "json", "https://example.com"},
 		},
 		{
-			name: "flags after URL",
-			in:   []string{"https://example.com", "--json"},
-			want: []string{"--json", "https://example.com"},
+			name: "format flag after URL",
+			in:   []string{"https://example.com", "--format", "json"},
+			want: []string{"--format", "json", "https://example.com"},
 		},
 		{
 			name: "value flag after URL",
@@ -87,13 +83,8 @@ func TestReorderArgs(t *testing.T) {
 		},
 		{
 			name: "mixed",
-			in:   []string{"https://example.com", "--json", "--profile", "myprof"},
-			want: []string{"--json", "--profile", "myprof", "https://example.com"},
-		},
-		{
-			name: "mutually exclusive after URL",
-			in:   []string{"https://example.com", "-json", "-patch"},
-			want: []string{"-json", "-patch", "https://example.com"},
+			in:   []string{"https://example.com", "--format", "patch", "--profile", "myprof"},
+			want: []string{"--format", "patch", "--profile", "myprof", "https://example.com"},
 		},
 	}
 
@@ -112,14 +103,17 @@ func TestReorderArgs(t *testing.T) {
 	}
 }
 
-func TestRunReview_FlagsAfterURL(t *testing.T) {
-	// --json after URL should still trigger mutually exclusive error with --patch
-	err := runReview([]string{"https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/repo/pull-requests/1", "-json", "-patch"})
+func TestRunReview_FormatAfterURL(t *testing.T) {
+	// Invalid format after URL should be detected
+	err := runReview([]string{"https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/repo/pull-requests/1", "-format", "xml"})
 	if err == nil {
-		t.Fatal("expected error for mutually exclusive flags after URL")
+		t.Fatal("expected error for invalid format after URL")
 	}
-	want := "--json and --patch are mutually exclusive"
-	if err.Error() != want {
-		t.Errorf("error = %q, want %q", err.Error(), want)
+}
+
+func TestRunList_InvalidFormat(t *testing.T) {
+	err := runList([]string{"--repo", "my-repo", "--format", "patch"})
+	if err == nil {
+		t.Fatal("expected error for invalid format in list")
 	}
 }

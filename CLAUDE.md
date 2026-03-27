@@ -11,9 +11,9 @@ It takes a CodeCommit PR URL, fetches metadata/comments/diffs, and outputs struc
 ## Intended Workflow
 
 ```
-ccpr review <codecommit-pr-url>          # Summary for humans
-ccpr review <codecommit-pr-url> --json   # JSON for Claude Code / AI tools
-ccpr review <codecommit-pr-url> --patch  # Diff only
+ccpr review <codecommit-pr-url>                 # Summary for humans
+ccpr review <codecommit-pr-url> --format json   # JSON for Claude Code / AI tools
+ccpr review <codecommit-pr-url> --format patch  # Diff only
 ```
 
 The primary use case: developer runs `ccpr review <url> --json`, passes the output to Claude Code, and Claude generates review comments from it. Do not search for an official Claude Code ↔ CodeCommit integration — this repository is that bridge.

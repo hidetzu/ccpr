@@ -32,18 +32,18 @@ repoMappings:
 ### Review a PR
 
 ```bash
-ccpr review <codecommit-pr-url>          # Summary (default)
-ccpr review <codecommit-pr-url> --json   # JSON for AI tools
-ccpr review <codecommit-pr-url> --patch  # Diff only
+ccpr review <codecommit-pr-url>                 # Summary (default)
+ccpr review <codecommit-pr-url> --format json   # JSON for AI tools
+ccpr review <codecommit-pr-url> --format patch  # Diff only
 ```
 
 ### List PRs
 
 ```bash
-ccpr list --repo <repo>                  # OPEN PRs (default)
-ccpr list --repo <repo> --status closed  # CLOSED PRs
-ccpr list --repo <repo> --status all     # All PRs
-ccpr list --repo <repo> --json           # JSON output
+ccpr list --repo <repo>                         # OPEN PRs (default)
+ccpr list --repo <repo> --status closed         # CLOSED PRs
+ccpr list --repo <repo> --status all            # All PRs
+ccpr list --repo <repo> --format json           # JSON output
 ```
 
 ### Version
@@ -55,8 +55,7 @@ ccpr --version
 ### Flags
 
 ```
---json       Output as JSON
---patch      Output diff only (mutually exclusive with --json)
+--format     Output format: summary (default), json, patch (review only)
 --profile    AWS profile name
 --region     AWS region
 --config     Path to configuration file
