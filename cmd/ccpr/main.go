@@ -29,12 +29,14 @@ func main() {
 
 func run(args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("usage: ccpr <command> [flags]\n\nCommands:\n  review     Review a CodeCommit pull request\n  --version  Print version")
+		return fmt.Errorf("usage: ccpr <command> [flags]\n\nCommands:\n  review     Review a CodeCommit pull request\n  list       List pull requests for a repository\n  --version  Print version")
 	}
 
 	switch args[0] {
 	case "review":
 		return runReview(args[1:])
+	case "list":
+		return runList(args[1:])
 	case "--version", "version":
 		v := getVersion()
 		fmt.Printf("ccpr version %s\nhttps://github.com/hidetzu/ccpr/releases/tag/%s\n", v, v)

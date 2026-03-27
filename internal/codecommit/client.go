@@ -27,8 +27,20 @@ type Comment struct {
 	FilePath  string
 }
 
+// PRSummary contains minimal info for listing pull requests.
+type PRSummary struct {
+	PRId              string
+	Title             string
+	AuthorARN         string
+	SourceBranch      string
+	DestinationBranch string
+	Status            string
+	CreationDate      time.Time
+}
+
 // Client defines the interface for interacting with AWS CodeCommit.
 type Client interface {
 	GetPRMetadata(ctx context.Context, repo, prID string) (PRMetadata, error)
 	GetPRComments(ctx context.Context, repo, prID, beforeCommit, afterCommit string) ([]Comment, error)
+	ListPRs(ctx context.Context, repo, status string) ([]PRSummary, error)
 }

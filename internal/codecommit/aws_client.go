@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	cc "github.com/aws/aws-sdk-go-v2/service/codecommit"
+	"github.com/aws/aws-sdk-go-v2/service/codecommit/types"
 )
 
 // AWSClient implements Client using the AWS SDK.
@@ -108,6 +109,52 @@ func (c *AWSClient) GetPRComments(ctx context.Context, repo, prID, beforeCommit,
 	}
 
 	return comments, nil
+}
+
+func (c *AWSClient) ListPRs(ctx context.Context, repo, status string) ([]PRSummary, error) {
+	input := &cc.ListPullRequestsInput{
+		RepositoryName: aws.String(repo),
+	}
+	switch status {
+	case "open":
+		input.PullRequestStatus = types.PullRequestStatusEnumOpen
+	case "closed":
+		input.PullRequestStatus = types.PullRequestStatusEnumClosed
+	case "all":
+		// no filter
+	default:
+		input.PullRequestStatus = types.PullRequestStatusEnumOpen
+	}
+
+	paginator := cc.NewListPullRequestsPaginator(c.client, input)
+
+	var ids []string
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("ListPullRequests: %w", err)
+		}
+		ids = append(ids, page.PullRequestIds...)
+	}
+
+	var summaries []PRSummary
+	for _, id := range ids {
+		meta, err := c.GetPRMetadata(ctx, repo, id)
+		if err != nil {
+			return nil, fmt.Errorf("fetching PR %s: %w", id, err)
+		}
+		summaries = append(summaries, PRSummary{
+			PRId:              id,
+			Title:             meta.Title,
+			AuthorARN:         meta.AuthorARN,
+			SourceBranch:      meta.SourceBranch,
+			DestinationBranch: meta.DestinationBranch,
+			Status:            meta.Status,
+			CreationDate:      meta.CreationDate,
+		})
+	}
+
+	return summaries, nil
 }
 
 func deref(s *string) string {
