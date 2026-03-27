@@ -104,7 +104,7 @@ func TestFormatSummary(t *testing.T) {
 		"Status:   OPEN",
 		"Branch:   fix/login → main",
 		"Created:  2026-01-15 10:30",
-		"Comments: 2",
+		"Comments: 2 (1 thread)",
 		"Files:    2 changed",
 		"## Description",
 		"Fixes timeout on login",
