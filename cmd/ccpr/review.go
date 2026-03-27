@@ -16,33 +16,31 @@ func runReview(args []string) error {
 	fs := flag.NewFlagSet("review", flag.ContinueOnError)
 
 	var (
-		flagJSON   bool
-		flagPatch  bool
-		flagRepo   string
-		flagRegion string
-		flagPRId   string
+		flagFormat  string
+		flagRepo    string
+		flagRegion  string
+		flagPRId    string
 		flagConfig  string
 		flagProfile string
 	)
 
-	fs.BoolVar(&flagJSON, "json", false, "Output as JSON (default)")
-	fs.BoolVar(&flagPatch, "patch", false, "Output diff only in unified patch format")
+	fs.StringVar(&flagFormat, "format", "summary", "Output format: summary, json, patch")
 	fs.StringVar(&flagRepo, "repo", "", "Repository name")
 	fs.StringVar(&flagRegion, "region", "", "AWS region")
 	fs.StringVar(&flagPRId, "pr-id", "", "Pull request ID")
 	fs.StringVar(&flagConfig, "config", "", "Path to configuration file")
 	fs.StringVar(&flagProfile, "profile", "", "AWS profile name")
 
-	// Reorder args so flags come first, allowing "ccpr review <url> --json".
-	// Go's flag package stops parsing at the first non-flag argument.
 	reordered := reorderArgs(args)
 	if err := fs.Parse(reordered); err != nil {
 		return err
 	}
 
-	// Flag exclusivity check
-	if flagJSON && flagPatch {
-		return fmt.Errorf("--json and --patch are mutually exclusive")
+	// Validate format
+	switch flagFormat {
+	case "summary", "json", "patch":
+	default:
+		return fmt.Errorf("invalid format %q: must be summary, json, or patch", flagFormat)
 	}
 
 	// Resolve PR parameters: URL or explicit flags
@@ -127,10 +125,10 @@ func runReview(args []string) error {
 	}
 
 	// Output
-	switch {
-	case flagPatch:
+	switch flagFormat {
+	case "patch":
 		return output.FormatPatch(os.Stdout, diffText)
-	case flagJSON:
+	case "json":
 		return output.FormatJSON(os.Stdout, review)
 	default:
 		return output.FormatSummary(os.Stdout, review)
@@ -146,8 +144,7 @@ func reorderArgs(args []string) []string {
 		a := args[i]
 		if len(a) > 0 && a[0] == '-' {
 			flags = append(flags, a)
-			// If this flag has a separate value (not bool, not =), consume next arg
-			if !isBoolFlag(a) && !containsEquals(a) && i+1 < len(args) {
+			if !containsEquals(a) && i+1 < len(args) && (len(args[i+1]) == 0 || args[i+1][0] != '-') {
 				i++
 				flags = append(flags, args[i])
 			}
@@ -156,15 +153,6 @@ func reorderArgs(args []string) []string {
 		}
 	}
 	return append(flags, positional...)
-}
-
-var boolFlags = map[string]bool{
-	"-json": true, "--json": true,
-	"-patch": true, "--patch": true,
-}
-
-func isBoolFlag(s string) bool {
-	return boolFlags[s]
 }
 
 func containsEquals(s string) bool {

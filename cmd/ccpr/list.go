@@ -6,9 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/hidetzu/ccpr/internal/config"
+	"github.com/hidetzu/ccpr/internal/output"
 )
 
 func runList(args []string) error {
@@ -17,7 +17,7 @@ func runList(args []string) error {
 	var (
 		flagRepo    string
 		flagStatus  string
-		flagJSON    bool
+		flagFormat  string
 		flagConfig  string
 		flagProfile string
 		flagRegion  string
@@ -25,13 +25,19 @@ func runList(args []string) error {
 
 	fs.StringVar(&flagRepo, "repo", "", "Repository name (required)")
 	fs.StringVar(&flagStatus, "status", "open", "PR status filter: open, closed, all")
-	fs.BoolVar(&flagJSON, "json", false, "Output as JSON")
+	fs.StringVar(&flagFormat, "format", "summary", "Output format: summary, json")
 	fs.StringVar(&flagConfig, "config", "", "Path to configuration file")
 	fs.StringVar(&flagProfile, "profile", "", "AWS profile name")
 	fs.StringVar(&flagRegion, "region", "", "AWS region")
 
 	if err := fs.Parse(args); err != nil {
 		return err
+	}
+
+	switch flagFormat {
+	case "summary", "json":
+	default:
+		return fmt.Errorf("invalid format %q: must be summary or json", flagFormat)
 	}
 
 	if flagRepo == "" {
@@ -61,7 +67,7 @@ func runList(args []string) error {
 		return fmt.Errorf("listing PRs: %w", err)
 	}
 
-	if flagJSON {
+	if flagFormat == "json" {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
 		return enc.Encode(prs)
@@ -73,10 +79,7 @@ func runList(args []string) error {
 	}
 
 	for _, pr := range prs {
-		author := pr.AuthorARN
-		if i := strings.LastIndex(author, "/"); i >= 0 {
-			author = author[i+1:]
-		}
+		author := output.ShortAuthor(pr.AuthorARN)
 		fmt.Printf("#%-6s %-40s %-20s %s → %s  %-6s  %s\n",
 			pr.PRId,
 			truncate(pr.Title, 40),
