@@ -2,13 +2,67 @@
 
 ![CI](https://github.com/hidetzu/ccpr/actions/workflows/ci.yml/badge.svg)
 
-Turn a CodeCommit PR URL into an AI-ready review in one command.
+Review AWS CodeCommit pull requests from the CLI — optimized for humans and AI.
+
+## Output Examples
+
+### Summary (default)
+
+```
+$ ccpr review <codecommit-pr-url>
+PR #883: Fix login bug
+Author:   example-user
+Status:   OPEN
+Branch:   feature/login → main
+Created:  2026-03-25
+
+Comments: 3 (2 threads)
+Files:    7 changed
+
+## Description
+
+Fix session timeout on login page
+```
+
+### JSON (for AI tools)
+
+```
+$ ccpr review <codecommit-pr-url> --format json
+{
+  "metadata": {
+    "prId": "883",
+    "title": "Fix login bug",
+    "author": "example-user",
+    "authorArn": "arn:aws:iam::123456789012:user/example-user",
+    "sourceBranch": "feature/login",
+    "destinationBranch": "main",
+    "status": "OPEN",
+    "creationDate": "2026-03-25T10:30:00Z"
+  },
+  "comments": [...],
+  "diff": "diff --git a/src/login.go ..."
+}
+```
 
 ## Overview
 
 ccpr is a CLI tool that bridges AWS CodeCommit and AI review tools like Claude Code.
 
 It takes a CodeCommit PR URL, fetches metadata, comments, and diffs, and outputs structured data that AI tools can use for code review.
+
+## Why
+
+AWS CodeCommit's UI and CLI make it hard to:
+
+- Quickly explore pull requests
+- Understand comment threads
+- Integrate with AI tools for code review
+
+ccpr provides a simple CLI to:
+
+- List and review PRs efficiently
+- Preserve comment thread structure
+- Output clean, structured data for AI
 
 ## Install
 
