@@ -111,6 +111,17 @@ repoMappings:
 
 ---
 
+### FR-10 PR List
+
+- List pull requests for a given repository
+- Default filter: OPEN
+- Support `--status` flag: `open` (default), `closed`, `all`
+- Summary output: PR ID, title, branches, status, creation date
+- Support `--json` for machine-readable output
+- Repository resolved via `--repo` flag (required)
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-01 CLI Behavior
