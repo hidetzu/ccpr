@@ -16,7 +16,8 @@ func convertComments(src []codecommit.Comment) []output.Comment {
 	out := make([]output.Comment, len(src))
 	for i, c := range src {
 		out[i] = output.Comment{
-			Author:    c.Author,
+			Author:    output.ShortAuthor(c.Author),
+			AuthorARN: c.Author,
 			Content:   c.Content,
 			Timestamp: c.Timestamp,
 			FilePath:  c.FilePath,

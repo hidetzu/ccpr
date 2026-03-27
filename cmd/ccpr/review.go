@@ -115,6 +115,7 @@ func runReview(args []string) error {
 			PRId:              prID,
 			Title:             metadata.Title,
 			Description:       metadata.Description,
+			Author:            output.ShortAuthor(metadata.AuthorARN),
 			AuthorARN:         metadata.AuthorARN,
 			SourceBranch:      metadata.SourceBranch,
 			DestinationBranch: metadata.DestinationBranch,

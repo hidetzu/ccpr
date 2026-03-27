@@ -13,6 +13,7 @@ var testOutput = ReviewOutput{
 		PRId:              "42",
 		Title:             "Fix login bug",
 		Description:       "Fixes timeout on login",
+		Author:            "dev",
 		AuthorARN:         "arn:aws:iam::123:user/dev",
 		SourceBranch:      "fix/login",
 		DestinationBranch: "main",
@@ -22,11 +23,13 @@ var testOutput = ReviewOutput{
 	Comments: []Comment{
 		{
 			Author:    "reviewer",
+			AuthorARN: "arn:aws:iam::123:user/reviewer",
 			Content:   "Looks good",
 			Timestamp: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
 		},
 		{
 			Author:    "reviewer",
+			AuthorARN: "arn:aws:iam::123:user/reviewer",
 			Content:   "Check this file",
 			Timestamp: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
 			FilePath:  "src/login.go",
@@ -112,5 +115,23 @@ func TestFormatSummary_NoDescription(t *testing.T) {
 
 	if strings.Contains(buf.String(), "Description") {
 		t.Error("summary should not show description section when empty")
+	}
+}
+
+func TestShortAuthor(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"arn:aws:iam::123456789012:user/example-user", "example-user"},
+		{"arn:aws:iam::123456789012:assumed-role/role/session", "session"},
+		{"plain-name", "plain-name"},
+		{"", ""},
+	}
+	for _, tt := range tests {
+		got := ShortAuthor(tt.input)
+		if got != tt.want {
+			t.Errorf("ShortAuthor(%q) = %q, want %q", tt.input, got, tt.want)
+		}
 	}
 }
