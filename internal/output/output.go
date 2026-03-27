@@ -31,6 +31,8 @@ type PRMetadata struct {
 
 // Comment is the JSON-serializable representation of a PR comment.
 type Comment struct {
+	CommentId string    `json:"commentId"`
+	InReplyTo string    `json:"inReplyTo,omitempty"`
 	Author    string    `json:"author"`
 	AuthorARN string    `json:"authorArn"`
 	Content   string    `json:"content"`

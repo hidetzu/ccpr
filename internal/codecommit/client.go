@@ -21,6 +21,8 @@ type PRMetadata struct {
 // Comment represents a single comment on a pull request.
 // FilePath is empty for PR-level comments.
 type Comment struct {
+	CommentId string
+	InReplyTo string
 	Author    string
 	Content   string
 	Timestamp time.Time

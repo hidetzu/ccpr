@@ -96,9 +96,11 @@ func (c *AWSClient) GetPRComments(ctx context.Context, repo, prID, beforeCommit,
 					continue
 				}
 				comment := Comment{
-					Author:   deref(c.AuthorArn),
-					Content:  deref(c.Content),
-					FilePath: filePath,
+					CommentId: deref(c.CommentId),
+					InReplyTo: deref(c.InReplyTo),
+					Author:    deref(c.AuthorArn),
+					Content:   deref(c.Content),
+					FilePath:  filePath,
 				}
 				if c.CreationDate != nil {
 					comment.Timestamp = *c.CreationDate

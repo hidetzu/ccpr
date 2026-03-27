@@ -22,12 +22,15 @@ var testOutput = ReviewOutput{
 	},
 	Comments: []Comment{
 		{
+			CommentId: "c1",
 			Author:    "reviewer",
 			AuthorARN: "arn:aws:iam::123:user/reviewer",
 			Content:   "Looks good",
 			Timestamp: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
 		},
 		{
+			CommentId: "c2",
+			InReplyTo: "c1",
 			Author:    "reviewer",
 			AuthorARN: "arn:aws:iam::123:user/reviewer",
 			Content:   "Check this file",
@@ -59,8 +62,18 @@ func TestFormatJSON(t *testing.T) {
 		t.Errorf("comment[1].filePath = %q, want %q", parsed.Comments[1].FilePath, "src/login.go")
 	}
 
+	if parsed.Comments[0].CommentId != "c1" {
+		t.Errorf("comment[0].commentId = %q, want c1", parsed.Comments[0].CommentId)
+	}
+	if parsed.Comments[1].InReplyTo != "c1" {
+		t.Errorf("comment[1].inReplyTo = %q, want c1", parsed.Comments[1].InReplyTo)
+	}
+
 	if bytes.Contains(buf.Bytes(), []byte(`"filePath":""`)) {
 		t.Error("empty filePath should be omitted from JSON")
+	}
+	if bytes.Contains(buf.Bytes(), []byte(`"inReplyTo":""`)) {
+		t.Error("empty inReplyTo should be omitted from JSON")
 	}
 }
 
