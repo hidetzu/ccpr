@@ -77,6 +77,12 @@ ccpr --version
 2. `--region` flag
 3. `region` in config file
 
+## Use Cases
+
+- AI-assisted code review: `ccpr review <url> --format json` → Claude Code
+- CLI-based PR browsing: `ccpr list` + `ccpr review` without opening the console
+- Quick PR access: `ccpr open <url>` to jump to the PR in browser
+
 ## Using with Claude Code
 
 For AWS CodeCommit repositories, you can use `ccpr` to provide PR data to Claude Code.
