@@ -77,9 +77,10 @@ func runList(args []string) error {
 		if i := strings.LastIndex(author, "/"); i >= 0 {
 			author = author[i+1:]
 		}
-		fmt.Printf("#%-6s %-40s %s → %s  %-6s  %s\n",
+		fmt.Printf("#%-6s %-40s %-20s %s → %s  %-6s  %s\n",
 			pr.PRId,
 			truncate(pr.Title, 40),
+			author,
 			pr.SourceBranch,
 			pr.DestinationBranch,
 			pr.Status,
