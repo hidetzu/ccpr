@@ -1,6 +1,10 @@
 # ccpr
 
-![CI](https://github.com/hidetzu/ccpr/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/hidetzu/ccpr/actions/workflows/ci.yml/badge.svg)](https://github.com/hidetzu/ccpr/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/hidetzu/ccpr)](https://goreportcard.com/report/github.com/hidetzu/ccpr)
+[![Go Reference](https://pkg.go.dev/badge/github.com/hidetzu/ccpr.svg)](https://pkg.go.dev/github.com/hidetzu/ccpr)
+[![Release](https://img.shields.io/github/v/release/hidetzu/ccpr)](https://github.com/hidetzu/ccpr/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 Review AWS CodeCommit pull requests from the CLI — optimized for humans and AI.
 
