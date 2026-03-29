@@ -143,9 +143,24 @@ ccpr --version
 
 ## Using with Claude Code
 
-For AWS CodeCommit repositories, you can use `ccpr` to provide PR data to Claude Code.
+ccpr provides a Claude Code skill for direct PR review integration.
 
-See [docs/claude-integration.md](docs/claude-integration.md) for setup instructions.
+### Quick start
+
+Copy the sample skill to your project:
+
+```bash
+mkdir -p .claude/skills/ccpr-review
+cp /path/to/ccpr/examples/claude/ccpr-review/SKILL.md .claude/skills/ccpr-review/
+```
+
+Then in Claude Code:
+
+```
+/ccpr-review <codecommit-pr-url>
+```
+
+See [docs/claude-integration.md](docs/claude-integration.md) for more options (global install, CLAUDE.md setup, customization).
 
 ## Development
 

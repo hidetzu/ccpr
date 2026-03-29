@@ -47,6 +47,42 @@ User: Review this PR
 Claude: (runs ccpr review <url> --json, reads the output, provides review)
 ```
 
+## Using the skill (recommended)
+
+ccpr provides a sample Claude Code skill that wraps the review workflow into a single slash command.
+
+### Prerequisites
+
+- `ccpr` must be installed and available in your `PATH` (see [Install](../README.md#install))
+
+### Install
+
+Copy `examples/claude/ccpr-review/SKILL.md` from this repository to your project or personal skills directory:
+
+```bash
+# Project-scoped (for a specific project)
+mkdir -p .claude/skills/ccpr-review
+cp /path/to/ccpr/examples/claude/ccpr-review/SKILL.md .claude/skills/ccpr-review/
+
+# Global (available in all projects)
+mkdir -p ~/.claude/skills/ccpr-review
+cp /path/to/ccpr/examples/claude/ccpr-review/SKILL.md ~/.claude/skills/ccpr-review/
+```
+
+### Usage
+
+In Claude Code:
+
+```
+/ccpr-review <codecommit-pr-url>
+```
+
+Claude will run `ccpr review <url> --format json` and review the PR, focusing on correctness, security, performance, and readability.
+
+### Customizing the review
+
+To adjust the review focus or language, edit the copied `SKILL.md` file. The skill is plain Markdown — no code changes needed.
+
 ## Notes
 
 - ccpr is a local helper CLI, not an official AWS or Anthropic integration

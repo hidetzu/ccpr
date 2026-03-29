@@ -122,6 +122,15 @@ repoMappings:
 
 ---
 
+### FR-11 Claude Code Skill
+
+- Provide a sample Claude Code skill at `examples/claude/ccpr-review/SKILL.md`
+- The skill invokes `ccpr review $ARGUMENTS --format json` and reviews the output
+- Fixed review focus: correctness, security, performance, readability
+- Users copy the skill to their `.claude/skills/` and customize as needed
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-01 CLI Behavior
