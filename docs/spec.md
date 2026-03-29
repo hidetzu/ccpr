@@ -191,6 +191,41 @@ Error codes:
 - `AWS_ERROR` — CodeCommit API failure
 - `GIT_ERROR` — local Git operation failure
 
+## Claude Code Skill (FR-11)
+
+The repository provides a Claude Code skill for direct PR review integration.
+
+### File Location
+
+```
+examples/claude/ccpr-review/SKILL.md
+```
+
+### Skill Design
+
+- **Thin wrapper**: The skill only invokes `ccpr review` and defines review behavior
+- **No ccpr-specific logic**: All data fetching and formatting is handled by the CLI
+- **Fixed review focus**: correctness, security, performance, readability
+- **User-customizable**: Users copy the skill and edit as needed
+
+### Installation
+
+Copy `examples/claude/ccpr-review/SKILL.md` to:
+- `.claude/skills/ccpr-review/SKILL.md` (project-scoped)
+- `~/.claude/skills/ccpr-review/SKILL.md` (global)
+
+### Frontmatter
+
+```yaml
+---
+name: ccpr-review
+description: Review a CodeCommit pull request using ccpr structured output
+allowed-tools: Bash(ccpr *)
+---
+```
+
+- `allowed-tools` restricts the skill to only run ccpr commands
+
 ## Dependencies
 
 - `aws-sdk-go-v2` — CodeCommit API calls

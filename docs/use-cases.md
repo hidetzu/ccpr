@@ -54,3 +54,20 @@
   2. ccpr proceeds as in UC-01 step 3 onward
 - Success:
   - Same as UC-01
+
+## UC-05 Review a PR via Claude Code skill
+
+- Actor: Developer using Claude Code
+- Trigger: A CodeCommit PR URL is available and developer wants AI review directly in Claude Code
+- Precondition: ccpr installed and configured, SKILL.md copied from `examples/claude/ccpr-review/` to user's `.claude/skills/ccpr-review/`
+- Main flow:
+  1. Developer invokes `/ccpr-review <PR_URL>` in Claude Code
+  2. The skill runs `ccpr review <PR_URL> --format json`
+  3. Claude reviews the PR output focusing on: correctness, security, performance, readability
+  4. Claude returns a structured review: summary, risks, suggested changes
+- Success:
+  - Developer gets AI-generated review without manual piping or CLAUDE.md setup
+- Note:
+  - The skill is a thin wrapper — ccpr handles data fetching, the skill defines review behavior
+  - Users can customize review focus by copying the skill to their own `.claude/skills/`
+  - Copy `examples/claude/ccpr-review/SKILL.md` to `.claude/skills/ccpr-review/` (project) or `~/.claude/skills/ccpr-review/` (global)
