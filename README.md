@@ -6,7 +6,78 @@
 [![Release](https://img.shields.io/github/v/release/hidetzu/ccpr)](https://github.com/hidetzu/ccpr/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Review AWS CodeCommit pull requests from the CLI — optimized for humans and AI.
+Turn a CodeCommit pull request into AI-ready review input in one command.
+
+```bash
+ccpr review <PR_URL> --format json | claude -p "Review this PR"
+```
+
+## What ccpr does
+
+- Fetch PR metadata, comments, and diffs from CodeCommit in one shot
+- Output as JSON / Patch — ready to pipe into AI tools
+- Automate code review with Claude Code
+
+## Before / After
+
+**Without ccpr:**
+CodeCommit's CLI is fragmented — gathering PR metadata, comments, and diffs requires multiple API calls and manual assembly. Feeding that to AI tools means even more glue work.
+
+**With ccpr:**
+One command gives you everything. JSON output plugs directly into Claude Code or any AI tool for instant review.
+
+## Quick Start
+
+```bash
+go install github.com/hidetzu/ccpr/cmd/ccpr@latest
+```
+
+Create a minimal config (`~/.config/ccpr/config.yaml`):
+
+```yaml
+profile: your-aws-profile
+region: ap-northeast-1
+repoMappings:
+  your-repo: /path/to/local/clone
+```
+
+Then:
+
+```bash
+ccpr review <codecommit-pr-url>
+```
+
+## AI Integration
+
+### Pipe to Claude
+
+```bash
+ccpr review <PR_URL> --format json | claude -p "Review this PR"
+```
+
+### Claude Code skill (recommended)
+
+ccpr provides a Claude Code skill for direct PR review integration.
+
+```bash
+mkdir -p .claude/skills/ccpr-review
+cp /path/to/ccpr/examples/claude/ccpr-review/SKILL.md .claude/skills/ccpr-review/
+```
+
+Then in Claude Code:
+
+```
+/ccpr-review <codecommit-pr-url>
+```
+
+See [docs/claude-integration.md](docs/claude-integration.md) for more options.
+
+## Use Cases
+
+- **AI code review** — `ccpr review <url> --format json` + Claude Code
+- **Quick PR summary** — `ccpr review <url>` for a human-readable overview
+- **CI integration** — pipe JSON/patch output to automated pipelines
+- **CLI-based PR browsing** — `ccpr list` + `ccpr review` without opening the console
 
 ## Output Examples
 
@@ -48,43 +119,6 @@ $ ccpr review <codecommit-pr-url> --format json
 }
 ```
 
-## Overview
-
-ccpr is a CLI tool that bridges AWS CodeCommit and AI review tools like Claude Code.
-
-It takes a CodeCommit PR URL, fetches metadata, comments, and diffs, and outputs structured data that AI tools can use for code review.
-
-## Why
-
-AWS CodeCommit's UI and CLI make it hard to:
-
-- Quickly explore pull requests
-- Understand comment threads
-- Integrate with AI tools for code review
-
-ccpr provides a simple CLI to:
-
-- List and review PRs efficiently
-- Preserve comment thread structure
-- Output clean, structured data for AI
-
-## Install
-
-```bash
-go install github.com/hidetzu/ccpr/cmd/ccpr@latest
-```
-
-## Setup
-
-Create `~/.config/ccpr/config.yaml`:
-
-```yaml
-profile: your-aws-profile
-region: ap-northeast-1
-repoMappings:
-  your-repo: /path/to/local/clone
-```
-
 ## Usage
 
 ### Review a PR
@@ -104,12 +138,6 @@ ccpr list --repo <repo> --status all            # All PRs
 ccpr list --repo <repo> --format json           # JSON output
 ```
 
-### Version
-
-```bash
-ccpr --version
-```
-
 ### Flags
 
 ```
@@ -120,6 +148,17 @@ ccpr --version
 --repo       Repository name
 --pr-id      Pull request ID (review only)
 --status     PR status filter: open, closed, all (list only)
+```
+
+## Configuration
+
+`~/.config/ccpr/config.yaml`
+
+```yaml
+profile: your-aws-profile
+region: ap-northeast-1
+repoMappings:
+  your-repo: /path/to/local/clone
 ```
 
 ### AWS Profile Resolution
@@ -134,33 +173,6 @@ ccpr --version
 1. PR URL (extracted automatically)
 2. `--region` flag
 3. `region` in config file
-
-## Use Cases
-
-- AI-assisted code review: `ccpr review <url> --format json` → Claude Code
-- CLI-based PR browsing: `ccpr list` + `ccpr review` without opening the console
-- Quick PR access: `ccpr open <url>` to jump to the PR in browser
-
-## Using with Claude Code
-
-ccpr provides a Claude Code skill for direct PR review integration.
-
-### Quick start
-
-Copy the sample skill to your project:
-
-```bash
-mkdir -p .claude/skills/ccpr-review
-cp /path/to/ccpr/examples/claude/ccpr-review/SKILL.md .claude/skills/ccpr-review/
-```
-
-Then in Claude Code:
-
-```
-/ccpr-review <codecommit-pr-url>
-```
-
-See [docs/claude-integration.md](docs/claude-integration.md) for more options (global install, CLAUDE.md setup, customization).
 
 ## Development
 
