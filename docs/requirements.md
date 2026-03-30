@@ -131,6 +131,18 @@ repoMappings:
 
 ---
 
+### FR-12 Config Initialization
+
+- Generate `~/.config/ccpr/config.yaml` with sensible defaults
+- Auto-detect:
+  - AWS profile from `AWS_PROFILE` environment variable
+  - Region from AWS CLI shared config (`~/.aws/config`)
+- Accept explicit overrides via `--profile` and `--region` flags
+- Refuse to overwrite existing config unless `--force` is specified
+- Print generated config path and values to stdout
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-01 CLI Behavior
