@@ -6,7 +6,7 @@
 [![Release](https://img.shields.io/github/v/release/hidetzu/ccpr)](https://github.com/hidetzu/ccpr/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-CodeCommit Pull Request to AI review in one command.
+Turn a CodeCommit pull request into AI-ready review input in one command.
 
 ```bash
 ccpr review <PR_URL> --format json | claude -p "Review this PR"
@@ -32,7 +32,7 @@ One command gives you everything. JSON output plugs directly into Claude Code or
 go install github.com/hidetzu/ccpr/cmd/ccpr@latest
 ```
 
-Create `~/.config/ccpr/config.yaml`:
+Create a minimal config (`~/.config/ccpr/config.yaml`):
 
 ```yaml
 profile: your-aws-profile
