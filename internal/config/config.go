@@ -73,6 +73,45 @@ func (c *Config) ResolveRepoPath(repoName string) (string, error) {
 	return path, nil
 }
 
+// DefaultPath returns the default config file path: ~/.config/ccpr/config.yaml.
+func DefaultPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("cannot determine home directory: %w", err)
+	}
+	return filepath.Join(home, ".config", "ccpr", "config.yaml"), nil
+}
+
+// Write generates a config file with comments and writes it to the given path.
+// It creates parent directories as needed.
+func Write(path string, cfg *Config) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("creating config directory %s: %w", dir, err)
+	}
+
+	content := generateConfigYAML(cfg)
+
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("writing config %s: %w", path, err)
+	}
+	return nil
+}
+
+func generateConfigYAML(cfg *Config) string {
+	var s string
+	s += fmt.Sprintf("profile: %s\n", cfg.Profile)
+	s += fmt.Sprintf("region: %s\n", cfg.Region)
+	s += "\n"
+	s += "repoMappings:\n"
+	s += "  # (optional) Map CodeCommit repository to local path\n"
+	s += "  # format:\n"
+	s += "  #   <repo-name>: <local-path>\n"
+	s += "  # example:\n"
+	s += "  #   my-repo: ~/src/my-repo\n"
+	return s
+}
+
 func loadFrom(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {

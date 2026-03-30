@@ -29,7 +29,7 @@ func main() {
 
 func run(args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("usage: ccpr <command> [flags]\n\nCommands:\n  review     Review a CodeCommit pull request\n  list       List pull requests for a repository\n  open       Open a pull request in the browser\n  --version  Print version")
+		return fmt.Errorf("usage: ccpr <command> [flags]\n\nCommands:\n  review     Review a CodeCommit pull request\n  list       List pull requests for a repository\n  open       Open a pull request in the browser\n  init       Initialize configuration file\n  --version  Print version")
 	}
 
 	switch args[0] {
@@ -39,6 +39,8 @@ func run(args []string) error {
 		return runList(args[1:])
 	case "open":
 		return runOpen(args[1:])
+	case "init":
+		return runInit(args[1:])
 	case "--version", "version":
 		v := getVersion()
 		fmt.Printf("ccpr version %s\nhttps://github.com/hidetzu/ccpr/releases/tag/%s\n", v, v)

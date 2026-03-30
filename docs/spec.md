@@ -226,6 +226,36 @@ allowed-tools: Bash(ccpr *)
 
 - `allowed-tools` restricts the skill to only run ccpr commands
 
+## Init Command (FR-12)
+
+### Behavior
+
+```
+ccpr init [--profile <name>] [--region <region>] [--force]
+```
+
+1. Determine config path: `~/.config/ccpr/config.yaml`
+2. If file exists and `--force` not set → exit with error
+3. Detect defaults:
+   - Profile: `--profile` flag > `AWS_PROFILE` env > `""`
+   - Region: `--region` flag > parsed from `~/.aws/config` > `""`
+4. Create parent directory if needed (`~/.config/ccpr/`)
+5. Write YAML config
+6. Print summary to stdout
+
+### Output
+
+```
+Config written to ~/.config/ccpr/config.yaml
+  profile: default
+  region:  ap-northeast-1
+```
+
+### Error Cases
+
+- `CONFIG_EXISTS` — config file already exists (exit code 1)
+- `INIT_WRITE_ERROR` — cannot create directory or write file (exit code 2)
+
 ## Dependencies
 
 - `aws-sdk-go-v2` — CodeCommit API calls

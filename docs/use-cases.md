@@ -55,7 +55,27 @@
 - Success:
   - Same as UC-01
 
-## UC-05 Review a PR via Claude Code skill
+## UC-05 Initialize configuration
+
+- Actor: Developer (first-time setup)
+- Trigger: Developer installs ccpr and wants to create a config file
+- Precondition: ccpr is installed
+- Main flow:
+  1. Developer runs `ccpr init`
+  2. ccpr detects AWS profile from `AWS_PROFILE` env or defaults to empty
+  3. ccpr detects region from AWS CLI config or defaults to empty
+  4. ccpr writes `~/.config/ccpr/config.yaml` with detected values
+  5. ccpr prints the generated config path and values
+- Alternative flow:
+  1. Developer runs `ccpr init --profile my-profile --region us-east-1`
+  2. ccpr uses the explicitly provided values instead of auto-detection
+- Success:
+  - Config file is created and ready to use
+- Failure:
+  - Config file already exists → error with message (use `--force` to overwrite)
+  - Cannot create config directory → error with path
+
+## UC-06 Review a PR via Claude Code skill
 
 - Actor: Developer using Claude Code
 - Trigger: A CodeCommit PR URL is available and developer wants AI review directly in Claude Code
