@@ -73,8 +73,7 @@ func runInit(args []string) error {
 	if region == "" {
 		fmt.Printf("\nNote: region is empty. Set it via:\n  - --region flag\n  - AWS_REGION env\n")
 	}
-	fmt.Printf("\nNext:\n  ccpr review <PR_URL>\n")
-	fmt.Printf("\nIf needed, edit repoMappings in %s before running review.\n", configPath)
+	fmt.Printf("\nNext:\n  If needed, edit repoMappings in %s\n  ccpr review <PR_URL>\n", configPath)
 
 	return nil
 }
