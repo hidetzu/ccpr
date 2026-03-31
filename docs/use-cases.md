@@ -75,7 +75,23 @@
   - Config file already exists → error with message (use `--force` to overwrite)
   - Cannot create config directory → error with path
 
-## UC-06 Review a PR via Claude Code skill
+## UC-06 Validate environment and config
+
+- Actor: Developer
+- Trigger: Developer wants to verify ccpr setup is working correctly
+- Precondition: ccpr is installed
+- Main flow:
+  1. Developer runs `ccpr doctor`
+  2. ccpr checks config file existence and validity
+  3. ccpr validates AWS credentials via STS GetCallerIdentity
+  4. ccpr checks each repoMappings entry (path exists, is a git repo)
+  5. ccpr prints a checklist of results with pass/fail markers
+- Success:
+  - All checks pass — developer is confident the setup works
+- Failure:
+  - Each failed check includes a suggestion for how to fix it
+
+## UC-07 Review a PR via Claude Code skill
 
 - Actor: Developer using Claude Code
 - Trigger: A CodeCommit PR URL is available and developer wants AI review directly in Claude Code

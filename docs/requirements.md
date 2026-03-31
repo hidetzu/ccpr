@@ -143,6 +143,19 @@ repoMappings:
 
 ---
 
+### FR-13 Environment Validation (doctor)
+
+- Check config file existence and YAML validity
+- Validate AWS credentials via STS GetCallerIdentity
+- Check each repoMappings entry:
+  - Path exists on filesystem
+  - Path is a git repository
+- Print checklist with pass (✔) / fail (✖) markers
+- Suggest fix for each failure
+- Exit code 0 if all checks pass, 1 if any check fails
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-01 CLI Behavior

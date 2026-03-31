@@ -49,7 +49,7 @@ func runOpen(args []string) error {
 		return fmt.Errorf("provide a PR URL or --repo and --pr-id flags")
 	}
 
-	cfg, err := config.Load(flagConfig)
+	cfg, _, err := config.Load(flagConfig)
 	if err != nil {
 		return fmt.Errorf("config: %w", err)
 	}

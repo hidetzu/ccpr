@@ -256,6 +256,37 @@ Config written to ~/.config/ccpr/config.yaml
 - `CONFIG_EXISTS` — config file already exists (exit code 1)
 - `INIT_WRITE_ERROR` — cannot create directory or write file (exit code 2)
 
+## Doctor Command (FR-13)
+
+### Behavior
+
+```
+ccpr doctor [--config <path>] [--profile <name>] [--region <region>]
+```
+
+Runs the following checks in order:
+
+1. **Config file** — exists and is valid YAML
+2. **AWS credentials** — STS GetCallerIdentity succeeds
+3. **Repo mappings** — each path exists and is a git repository
+
+### Output
+
+```
+✔ Config file: ~/.config/ccpr/config.yaml
+✔ AWS credentials: arn:aws:iam::123456789012:user/example-user
+✔ Repo mapping: my-repo → /home/user/src/my-repo (git OK)
+✖ Repo mapping: other-repo → /tmp/missing (path not found)
+  → Check repoMappings in ~/.config/ccpr/config.yaml
+
+3/4 checks passed
+```
+
+### Exit Codes
+
+- `0` — all checks passed
+- `1` — one or more checks failed
+
 ## Dependencies
 
 - `aws-sdk-go-v2` — CodeCommit API calls

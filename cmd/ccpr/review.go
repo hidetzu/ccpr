@@ -62,7 +62,7 @@ func runReview(args []string) error {
 	}
 
 	// Load config for repo mapping
-	cfg, err := config.Load(flagConfig)
+	cfg, _, err := config.Load(flagConfig)
 	if err != nil {
 		return fmt.Errorf("config: %w", err)
 	}

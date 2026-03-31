@@ -39,14 +39,16 @@ func (c *Config) ResolveProfile(flagProfile string) string {
 	return ""
 }
 
-// Load searches for a configuration file and returns the parsed Config.
+// Load searches for a configuration file and returns the parsed Config
+// along with the resolved file path.
 // Search order:
 //  1. explicit path (if non-empty)
 //  2. .ccpr.yaml in current directory
 //  3. ~/.config/ccpr/config.yaml
-func Load(path string) (*Config, error) {
+func Load(path string) (*Config, string, error) {
 	if path != "" {
-		return loadFrom(path)
+		cfg, err := loadFrom(path)
+		return cfg, path, err
 	}
 
 	candidates := []string{".ccpr.yaml"}
@@ -56,11 +58,12 @@ func Load(path string) (*Config, error) {
 
 	for _, c := range candidates {
 		if _, err := os.Stat(c); err == nil {
-			return loadFrom(c)
+			cfg, err := loadFrom(c)
+			return cfg, c, err
 		}
 	}
 
-	return nil, fmt.Errorf("config file not found (searched .ccpr.yaml and ~/.config/ccpr/config.yaml)")
+	return nil, "", fmt.Errorf("config file not found (searched .ccpr.yaml and ~/.config/ccpr/config.yaml)")
 }
 
 // ResolveRepoPath returns the local filesystem path for a CodeCommit repository name.

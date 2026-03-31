@@ -44,7 +44,7 @@ func runList(args []string) error {
 		return fmt.Errorf("--repo is required for list command")
 	}
 
-	cfg, err := config.Load(flagConfig)
+	cfg, _, err := config.Load(flagConfig)
 	if err != nil {
 		return fmt.Errorf("config: %w", err)
 	}
