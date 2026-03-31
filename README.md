@@ -30,20 +30,7 @@ One command gives you everything. JSON output plugs directly into Claude Code or
 
 ```bash
 go install github.com/hidetzu/ccpr/cmd/ccpr@latest
-```
-
-Create a minimal config (`~/.config/ccpr/config.yaml`):
-
-```yaml
-profile: your-aws-profile
-region: ap-northeast-1
-repoMappings:
-  your-repo: /path/to/local/clone
-```
-
-Then:
-
-```bash
+ccpr init
 ccpr review <codecommit-pr-url>
 ```
 
@@ -75,6 +62,7 @@ See [docs/claude-integration.md](docs/claude-integration.md) for more options.
 ## Use Cases
 
 - **AI code review** — `ccpr review <url> --format json` + Claude Code
+- **Post review comments** — `ccpr comment <url> --body-file review.md`
 - **Quick PR summary** — `ccpr review <url>` for a human-readable overview
 - **CI integration** — pipe JSON/patch output to automated pipelines
 - **CLI-based PR browsing** — `ccpr list` + `ccpr review` without opening the console
@@ -138,15 +126,32 @@ ccpr list --repo <repo> --status all            # All PRs
 ccpr list --repo <repo> --format json           # JSON output
 ```
 
+### Post a comment
+
+```bash
+ccpr comment <codecommit-pr-url> --body "LGTM"
+ccpr comment <codecommit-pr-url> --body-file review.md
+echo "Looks good" | ccpr comment <codecommit-pr-url> --body -
+```
+
+### Setup and diagnostics
+
+```bash
+ccpr init                   # Generate config file
+ccpr doctor                 # Validate environment and config
+```
+
 ### Flags
 
 ```
 --format     Output format: summary (default), json, patch (review only)
+--body       Comment body (use - for stdin; comment only)
+--body-file  Path to comment body file (comment only)
 --profile    AWS profile name
 --region     AWS region
 --config     Path to configuration file
 --repo       Repository name
---pr-id      Pull request ID (review only)
+--pr-id      Pull request ID (review/comment only)
 --status     PR status filter: open, closed, all (list only)
 ```
 

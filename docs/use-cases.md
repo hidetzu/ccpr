@@ -91,7 +91,27 @@
 - Failure:
   - Each failed check includes a suggestion for how to fix it
 
-## UC-07 Review a PR via Claude Code skill
+## UC-07 Post a comment to a PR
+
+- Actor: Developer
+- Trigger: Developer wants to post a review comment to a CodeCommit PR from the CLI
+- Precondition: AWS credentials are configured, config file exists
+- Main flow:
+  1. Developer runs `ccpr comment <PR_URL> --body "comment text"`
+  2. ccpr parses URL, resolves config, fetches PR metadata for commit IDs
+  3. ccpr calls PostCommentForPullRequest API
+  4. ccpr prints comment ID and timestamp on success
+- Alternative flows:
+  - `--body-file review.md` reads body from file
+  - `--body -` reads body from stdin
+  - `--repo`, `--pr-id` flags instead of URL
+- Success:
+  - Comment is posted and confirmation is printed
+- Failure:
+  - Missing body → error with usage hint
+  - AWS API failure → error with context
+
+## UC-08 Review a PR via Claude Code skill
 
 - Actor: Developer using Claude Code
 - Trigger: A CodeCommit PR URL is available and developer wants AI review directly in Claude Code

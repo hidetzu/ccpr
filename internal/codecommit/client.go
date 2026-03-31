@@ -40,9 +40,17 @@ type PRSummary struct {
 	CreationDate      time.Time
 }
 
+// PostCommentResult contains the result of posting a comment.
+type PostCommentResult struct {
+	CommentID    string
+	AuthorARN    string
+	CreationDate time.Time
+}
+
 // Client defines the interface for interacting with AWS CodeCommit.
 type Client interface {
 	GetPRMetadata(ctx context.Context, repo, prID string) (PRMetadata, error)
 	GetPRComments(ctx context.Context, repo, prID, beforeCommit, afterCommit string) ([]Comment, error)
 	ListPRs(ctx context.Context, repo, status string) ([]PRSummary, error)
+	PostComment(ctx context.Context, repo, prID, beforeCommit, afterCommit, content string) (PostCommentResult, error)
 }
