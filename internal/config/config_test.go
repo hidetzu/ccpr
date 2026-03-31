@@ -14,7 +14,7 @@ func TestLoad_ExplicitPath(t *testing.T) {
   other: /tmp/other
 `)
 
-	cfg, err := Load(cfgPath)
+	cfg, _, err := Load(cfgPath)
 	if err != nil {
 		t.Fatalf("Load(%q) unexpected error: %v", cfgPath, err)
 	}
@@ -38,7 +38,7 @@ func TestLoad_DotCcprYaml(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cfg, err := Load("")
+	cfg, _, err := Load("")
 	if err != nil {
 		t.Fatalf("Load(\"\") unexpected error: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestLoad_FileNotFound(t *testing.T) {
 	// Override home to empty dir so ~/.config/ccpr/config.yaml also doesn't exist
 	t.Setenv("HOME", dir)
 
-	_, err := Load("")
+	_, _, err := Load("")
 	if err == nil {
 		t.Fatal("Load(\"\") expected error for missing config, got nil")
 	}
@@ -70,9 +70,40 @@ func TestLoad_InvalidYAML(t *testing.T) {
 	cfgPath := filepath.Join(dir, "bad.yaml")
 	writeFile(t, cfgPath, `[[[invalid`)
 
-	_, err := Load(cfgPath)
+	_, _, err := Load(cfgPath)
 	if err == nil {
 		t.Fatal("Load() expected error for invalid YAML, got nil")
+	}
+}
+
+func TestLoad_ResolvedPathMatchesActualFile(t *testing.T) {
+	dir := t.TempDir()
+
+	// Create both .ccpr.yaml and ~/.config/ccpr/config.yaml
+	dotCcpr := filepath.Join(dir, ".ccpr.yaml")
+	writeFile(t, dotCcpr, "profile: local\n")
+
+	defaultDir := filepath.Join(dir, ".config", "ccpr")
+	if err := os.MkdirAll(defaultDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(defaultDir, "config.yaml"), "profile: global\n")
+
+	t.Setenv("HOME", dir)
+	orig, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	_ = os.Chdir(dir)
+
+	// Load("") should pick .ccpr.yaml and report that path
+	cfg, resolvedPath, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Profile != "local" {
+		t.Errorf("profile = %q, want local", cfg.Profile)
+	}
+	if resolvedPath != ".ccpr.yaml" {
+		t.Errorf("resolvedPath = %q, want .ccpr.yaml", resolvedPath)
 	}
 }
 
