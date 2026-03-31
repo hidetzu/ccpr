@@ -287,6 +287,58 @@ Runs the following checks in order:
 - `0` — all checks passed
 - `1` — one or more checks failed
 
+## Comment Command (FR-14)
+
+### Behavior
+
+```
+ccpr comment <PR_URL> --body "comment text"
+ccpr comment <PR_URL> --body-file review.md
+ccpr comment <PR_URL> --body -
+ccpr comment --repo <repo> --pr-id <id> --body "comment text"
+```
+
+1. Resolve repository name, PR ID, and region from URL or flags
+2. Load config, resolve profile/region
+3. Call `GetPullRequest` to retrieve `sourceCommit` and `destinationCommit`
+4. Call `PostCommentForPullRequest` with resolved parameters and body
+5. Print result
+
+### Body Input Priority
+
+1. `--body` flag (if not `-`)
+2. `--body -` (read stdin)
+3. `--body-file` path
+
+`--body` and `--body-file` are mutually exclusive.
+
+### Output
+
+```
+Comment posted successfully.
+Comment ID: eb596ff8-5133-438f-88d6-7c94f693302b
+PR: #957
+Author: example-user
+Created: 2026-03-31T17:22:24+09:00
+```
+
+With `--format json`:
+
+```json
+{
+  "commentId": "eb596ff8-...",
+  "pullRequestId": "957",
+  "authorArn": "arn:aws:iam::123456789012:user/example-user",
+  "creationDate": "2026-03-31T17:22:24Z"
+}
+```
+
+### Error Cases
+
+- `MISSING_BODY` — no body provided (exit code 1)
+- `BODY_CONFLICT` — both `--body` and `--body-file` specified (exit code 1)
+- `AWS_ERROR` — PostCommentForPullRequest failure (exit code 2)
+
 ## Dependencies
 
 - `aws-sdk-go-v2` — CodeCommit API calls

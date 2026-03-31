@@ -156,6 +156,21 @@ repoMappings:
 
 ---
 
+### FR-14 Post Comment to PR
+
+- Post a comment to a CodeCommit pull request
+- Accept comment body via:
+  - `--body` flag (inline text)
+  - `--body-file` flag (read from file)
+  - `--body -` (read from stdin)
+- Resolve PR parameters from URL or `--repo` + `--pr-id` flags
+- Retrieve source/destination commit IDs via GetPullRequest API
+- Call PostCommentForPullRequest API
+- Print comment ID and timestamp on success
+- Support `--format json` for machine-readable output
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-01 CLI Behavior

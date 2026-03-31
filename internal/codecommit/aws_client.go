@@ -159,6 +159,29 @@ func (c *AWSClient) ListPRs(ctx context.Context, repo, status string) ([]PRSumma
 	return summaries, nil
 }
 
+func (c *AWSClient) PostComment(ctx context.Context, repo, prID, beforeCommit, afterCommit, content string) (PostCommentResult, error) {
+	out, err := c.client.PostCommentForPullRequest(ctx, &cc.PostCommentForPullRequestInput{
+		PullRequestId:  aws.String(prID),
+		RepositoryName: aws.String(repo),
+		BeforeCommitId: aws.String(beforeCommit),
+		AfterCommitId:  aws.String(afterCommit),
+		Content:        aws.String(content),
+	})
+	if err != nil {
+		return PostCommentResult{}, fmt.Errorf("PostCommentForPullRequest: %w", err)
+	}
+
+	result := PostCommentResult{}
+	if out.Comment != nil {
+		result.CommentID = deref(out.Comment.CommentId)
+		result.AuthorARN = deref(out.Comment.AuthorArn)
+		if out.Comment.CreationDate != nil {
+			result.CreationDate = *out.Comment.CreationDate
+		}
+	}
+	return result, nil
+}
+
 func deref(s *string) string {
 	if s == nil {
 		return ""
