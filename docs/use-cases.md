@@ -6,7 +6,7 @@
 - Trigger: A CodeCommit PR URL is available
 - Precondition: AWS credentials are configured, target repository is cloned locally, repo mapping configured in `~/.config/ccpr/config.yaml`
 - Main flow:
-  1. Developer runs `ccpr review <url> --json` (directly or via Claude Code)
+  1. Developer runs `ccpr review <url> --format json` (directly or via Claude Code)
   2. ccpr parses the URL to extract region, repository, and PR ID
   3. ccpr resolves AWS profile (--profile > config > AWS_PROFILE > default)
   4. ccpr fetches PR metadata and comments via AWS SDK
@@ -40,7 +40,7 @@
 - Trigger: Developer needs just the diff from a CodeCommit PR
 - Precondition: AWS credentials are configured, target repository is cloned locally
 - Main flow:
-  1. Developer runs `ccpr review <url> --patch`
+  1. Developer runs `ccpr review <url> --format patch`
   2. ccpr outputs the diff in unified patch format
 - Success:
   - Patch output is written to stdout, suitable for piping to other tools
@@ -50,7 +50,7 @@
 - Actor: Developer
 - Trigger: Developer has repo name, region, and PR ID but not the full URL
 - Main flow:
-  1. Developer runs `ccpr review --repo <repo> --region <region> --pr-id <id> --json`
+  1. Developer runs `ccpr review --repo <repo> --region <region> --pr-id <id> --format json`
   2. ccpr proceeds as in UC-01 step 3 onward
 - Success:
   - Same as UC-01
@@ -151,3 +151,20 @@
   - Missing required flags (--repo, --title, --dest) → error with usage hint
   - AWS API failure → error with context
   - Source branch same as destination → error with message
+
+## UC-10 Open a PR in the browser
+
+- Actor: Developer
+- Trigger: Developer wants to quickly open a CodeCommit PR in the AWS console
+- Precondition: Config file exists with region configured
+- Main flow:
+  1. Developer runs `ccpr open <PR_URL>`
+  2. ccpr parses URL to extract region, repository, and PR ID
+  3. ccpr opens the CodeCommit console URL in the default browser
+- Alternative flows:
+  - `--repo my-repo --pr-id 42` flags instead of URL
+- Success:
+  - PR page opens in the browser
+- Failure:
+  - Missing region → error with guidance
+  - Browser cannot be opened → prints URL to stdout as fallback

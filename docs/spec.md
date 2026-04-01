@@ -119,11 +119,8 @@ Built with standard `flag` package or a lightweight CLI library (e.g., cobra).
 ```
 ccpr review <url> [flags]
 
-Output (default: summary):
-  --json       Output as JSON (for AI tools / scripts)
-  --patch      Output diff only in unified patch format
-
 Flags:
+  --format     Output format: summary (default), json, patch
   --profile    AWS profile name
   --repo       Repository name (alternative to URL)
   --region     AWS region (alternative to URL)
@@ -131,16 +128,11 @@ Flags:
   --config     Path to configuration file
 ```
 
-### Flag Exclusivity
+### Format Flag
 
-`--json` and `--patch` are mutually exclusive. If both are specified, the CLI
-exits with code 1 and prints an error to stderr:
+`--format` accepts one of: `summary` (default), `json`, `patch`.
 
-```
-error: --json and --patch are mutually exclusive
-```
-
-If neither is specified, `--json` is the default.
+Invalid values cause the CLI to exit with code 1 and print an error to stderr.
 
 ## Diff Strategy
 
@@ -172,7 +164,7 @@ with exit code 2.
 - All errors returned as `error` values, not panics
 - CLI layer formats errors to stderr with context
 - Exit codes: 0 = success, 1 = user error (bad input), 2 = system error (AWS/Git)
-- In JSON mode, errors are also written as JSON to stderr (FR: NFR-03):
+- In JSON mode, errors are currently printed as plain text to stderr (same as non-JSON mode). Structured JSON error output (NFR-03) is planned for a future release:
 
 ```json
 {
@@ -183,7 +175,7 @@ with exit code 2.
 }
 ```
 
-Error codes:
+Reserved error codes (for future use):
 - `INVALID_URL` — malformed PR URL
 - `INVALID_FLAGS` — conflicting or missing CLI flags
 - `CONFIG_NOT_FOUND` — configuration file not found
@@ -286,6 +278,26 @@ Runs the following checks in order:
 
 - `0` — all checks passed
 - `1` — one or more checks failed
+
+## Open Command (FR-15)
+
+### Behavior
+
+```
+ccpr open <PR_URL>
+ccpr open --repo <repo> --pr-id <id> --region <region>
+```
+
+1. Resolve repository name, PR ID, and region from URL or flags
+2. Load config, resolve region (required)
+3. Build CodeCommit console URL
+4. Open URL in default browser (`xdg-open` on Linux, `open` on macOS, `cmd /c start` on Windows)
+5. If browser cannot be opened, print URL to stdout as fallback
+
+### Error Cases
+
+- `MISSING_REGION` — region not provided and not in config (exit code 1)
+- `INVALID_URL` — malformed PR URL (exit code 1)
 
 ## Comment Command (FR-14)
 

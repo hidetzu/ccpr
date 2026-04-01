@@ -65,10 +65,10 @@ Constraints (MVP):
 
 ### FR-06 JSON Output
 
-- Triggered by `--json` flag
+- Triggered by `--format json` flag
 - Combine metadata, comments, and diff
 - Output as a single JSON document
-- JSON schema must be stable
+- JSON schema must be stable (see docs/json-schema.md)
 - Designed for AI tools and script integration
 
 Constraints:
@@ -79,11 +79,11 @@ Constraints:
 
 ### FR-07 Patch Output
 
-- Triggered by `--patch` flag
+- Triggered by `--format patch` flag
 - Output raw diff only
 
 Constraints:
-- `--json`, `--patch` are mutually exclusive
+- `--format` accepts one value only; `json` and `patch` cannot be combined
 
 ---
 
@@ -117,7 +117,7 @@ repoMappings:
 - Default filter: OPEN
 - Support `--status` flag: `open` (default), `closed`, `all`
 - Summary output: PR ID, title, branches, status, creation date
-- Support `--json` for machine-readable output
+- Support `--format json` for machine-readable output
 - Repository resolved via `--repo` flag (required)
 
 ---
@@ -171,7 +171,17 @@ repoMappings:
 
 ---
 
-### FR-15 Create Pull Request
+### FR-15 Open PR in Browser
+
+- Open a CodeCommit PR in the default browser
+- Resolve PR parameters from URL or `--repo` + `--pr-id` flags
+- Build CodeCommit console URL from region, repository, and PR ID
+- Region is required (from URL, `--region` flag, or config)
+- Fall back to printing URL to stdout if browser cannot be opened
+
+---
+
+### FR-16 Create Pull Request
 
 - Create a CodeCommit pull request via the CreatePullRequest API
 - Required flags: `--repo`, `--title`, `--dest`
@@ -211,7 +221,9 @@ repoMappings:
 
 ### NFR-03 Error Format (JSON mode)
 
-Errors must follow:
+Planned for a future release. Currently, errors are printed as plain text to stderr regardless of output format.
+
+Target format:
 
 {
   "error": {

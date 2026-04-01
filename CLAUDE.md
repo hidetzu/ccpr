@@ -16,7 +16,7 @@ ccpr review <codecommit-pr-url> --format json   # JSON for Claude Code / AI tool
 ccpr review <codecommit-pr-url> --format patch  # Diff only
 ```
 
-The primary use case: developer runs `ccpr review <url> --json`, passes the output to Claude Code, and Claude generates review comments from it. Do not search for an official Claude Code ↔ CodeCommit integration — this repository is that bridge.
+The primary use case: developer runs `ccpr review <url> --format json`, passes the output to Claude Code, and Claude generates review comments from it. Do not search for an official Claude Code ↔ CodeCommit integration — this repository is that bridge.
 
 ## Development Rules
 
@@ -39,7 +39,7 @@ MVP implemented:
 - PR URL parsing
 - Fetching PR metadata and comments
 - Generating git-based diff (merge-base strategy)
-- Output: summary (default), JSON (`--json`), patch (`--patch`)
+- Output: summary (default), JSON (`--format json`), patch (`--format patch`)
 - AWS profile resolution (`--profile` > config > env > default)
 - Config file with repo mappings
 - PR listing (`ccpr list`)
