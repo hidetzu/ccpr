@@ -61,8 +61,7 @@ func runOpen(args []string) error {
 		return fmt.Errorf("region is required: use --region flag or set region in config file")
 	}
 
-	openURL := fmt.Sprintf("https://%s.console.aws.amazon.com/codesuite/codecommit/repositories/%s/pull-requests/%s",
-		region, repo, prID)
+	openURL := buildConsoleURL(region, repo, prID)
 
 	return openBrowser(openURL)
 }

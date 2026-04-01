@@ -171,6 +171,23 @@ repoMappings:
 
 ---
 
+### FR-15 Create Pull Request
+
+- Create a CodeCommit pull request via the CreatePullRequest API
+- Required flags: `--repo`, `--title`, `--dest`
+- Optional flags: `--source`, `--description`, `--description-file`, `--format`, `--region`, `--profile`, `--config`
+- Source branch defaults to the current Git branch if `--source` is not specified
+- Accept description via:
+  - `--description` flag (inline text)
+  - `--description-file` flag (read from file)
+  - `--description -` (read from stdin)
+- `--description` and `--description-file` are mutually exclusive
+- Summary output (default): PR ID, title, source/destination branches, console URL
+- JSON output (`--format json`): machine-readable result for piping to other commands
+- Follow AWS profile/region resolution priority (FR-09)
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-01 CLI Behavior

@@ -182,6 +182,43 @@ func (c *AWSClient) PostComment(ctx context.Context, repo, prID, beforeCommit, a
 	return result, nil
 }
 
+func (c *AWSClient) CreatePR(ctx context.Context, repo, title, description, sourceBranch, destBranch string) (CreatePRResult, error) {
+	input := &cc.CreatePullRequestInput{
+		Title: aws.String(title),
+		Targets: []types.Target{
+			{
+				RepositoryName:       aws.String(repo),
+				SourceReference:      aws.String(sourceBranch),
+				DestinationReference: aws.String(destBranch),
+			},
+		},
+	}
+	if description != "" {
+		input.Description = aws.String(description)
+	}
+
+	out, err := c.client.CreatePullRequest(ctx, input)
+	if err != nil {
+		return CreatePRResult{}, fmt.Errorf("CreatePullRequest: %w", err)
+	}
+
+	result := CreatePRResult{
+		Title: deref(out.PullRequest.Title),
+	}
+	if out.PullRequest.PullRequestId != nil {
+		result.PRId = *out.PullRequest.PullRequestId
+	}
+	for _, t := range out.PullRequest.PullRequestTargets {
+		if deref(t.RepositoryName) == repo {
+			result.SourceBranch = stripRefsHeads(deref(t.SourceReference))
+			result.DestinationBranch = stripRefsHeads(deref(t.DestinationReference))
+			break
+		}
+	}
+
+	return result, nil
+}
+
 func deref(s *string) string {
 	if s == nil {
 		return ""

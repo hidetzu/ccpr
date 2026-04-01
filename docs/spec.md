@@ -339,6 +339,79 @@ With `--format json`:
 - `BODY_CONFLICT` — both `--body` and `--body-file` specified (exit code 1)
 - `AWS_ERROR` — PostCommentForPullRequest failure (exit code 2)
 
+## Create Command (FR-15)
+
+### Behavior
+
+```
+ccpr create --repo <repo> --title "PR title" --dest main
+ccpr create --repo <repo> --title "PR title" --dest main --source feature/x
+ccpr create --repo <repo> --title "PR title" --dest main --description "Description text"
+ccpr create --repo <repo> --title "PR title" --dest main --description -
+ccpr create --repo <repo> --title "PR title" --dest main --description-file desc.md
+ccpr create --repo <repo> --title "PR title" --dest main --format json
+```
+
+1. Validate required flags: `--repo`, `--title`, `--dest`
+2. Resolve source branch: `--source` flag > current Git branch (from repo mapping path)
+3. Resolve description: `--description` / `--description -` / `--description-file` (same pattern as comment command's body resolution)
+4. Load config, resolve profile/region
+5. Call `CreatePullRequest` API with title, description, source branch, destination branch, repository name
+6. Build console URL from region and repository name
+7. Print result
+
+### Description Input Priority
+
+1. `--description` flag (if not `-`)
+2. `--description -` (read stdin)
+3. `--description-file` path
+
+`--description` and `--description-file` are mutually exclusive. Description is optional — if none provided, the PR is created without a description.
+
+### Output
+
+```
+✔ Pull request created
+  PR #42: Add feature X
+  Repository: my-repo
+  Source: feature/add-x → Destination: main
+  URL: https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/42
+```
+
+With `--format json`:
+
+```json
+{
+  "prId": "42",
+  "title": "Add feature X",
+  "repository": "my-repo",
+  "sourceBranch": "feature/add-x",
+  "destinationBranch": "main",
+  "url": "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/42"
+}
+```
+
+### Source Branch Resolution
+
+When `--source` is not specified:
+1. Resolve local repo path from config repo mappings using `--repo`
+2. Run `git -C <repo-path> rev-parse --abbrev-ref HEAD` to get the current branch
+3. Error if the resolved branch is the same as `--dest`
+
+### Console URL Format
+
+```
+https://<region>.console.aws.amazon.com/codesuite/codecommit/repositories/<repo>/pull-requests/<prId>
+```
+
+### Error Cases
+
+- `MISSING_FLAGS` — required flags not provided (exit code 1)
+- `DESCRIPTION_CONFLICT` — both `--description` and `--description-file` specified (exit code 1)
+- `SAME_BRANCH` — source and destination branches are the same (exit code 1)
+- `AWS_ERROR` — CreatePullRequest API failure (exit code 2)
+- `GIT_ERROR` — cannot determine current branch (exit code 2)
+
 ## Dependencies
 
 - `aws-sdk-go-v2` — CodeCommit API calls
