@@ -127,3 +127,27 @@
   - The skill is a thin wrapper — ccpr handles data fetching, the skill defines review behavior
   - Users can customize review focus by copying the skill to their own `.claude/skills/`
   - Copy `examples/claude/ccpr-review/SKILL.md` to `.claude/skills/ccpr-review/` (project) or `~/.claude/skills/ccpr-review/` (global)
+
+## UC-09 Create a CodeCommit PR
+
+- Actor: Developer
+- Trigger: Developer wants to create a CodeCommit PR from the CLI
+- Precondition: AWS credentials are configured, config file exists with repo mapping
+- Main flow:
+  1. Developer runs `ccpr create --repo my-repo --title "Add feature X" --dest main`
+  2. ccpr resolves source branch from current Git HEAD (or `--source` flag)
+  3. ccpr resolves AWS profile and region via standard priority chain
+  4. ccpr calls CreatePullRequest API
+  5. ccpr prints PR ID, title, branches, and console URL
+- Alternative flows:
+  - `--description "text"` sets PR description inline
+  - `--description -` reads description from stdin
+  - `--description-file desc.md` reads description from file
+  - `--source feature/fix` specifies source branch explicitly
+  - `--format json` outputs machine-readable result for downstream commands
+- Success:
+  - PR is created and confirmation with console URL is printed
+- Failure:
+  - Missing required flags (--repo, --title, --dest) → error with usage hint
+  - AWS API failure → error with context
+  - Source branch same as destination → error with message

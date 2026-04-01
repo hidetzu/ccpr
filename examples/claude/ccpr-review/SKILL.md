@@ -4,6 +4,12 @@ description: Review a CodeCommit pull request using ccpr structured output
 allowed-tools: Bash(ccpr *)
 ---
 
+If `ccpr` is not installed, install it first:
+
+```
+go install github.com/hidetzu/ccpr/cmd/ccpr@latest
+```
+
 Run `ccpr review $ARGUMENTS --format json` and review the pull request based on the structured output.
 
 Focus on:
