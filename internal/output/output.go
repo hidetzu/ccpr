@@ -36,7 +36,7 @@ type Comment struct {
 	Author    string    `json:"author"`
 	AuthorARN string    `json:"authorArn"`
 	Content   string    `json:"content"`
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp string `json:"timestamp"`
 	FilePath  string    `json:"filePath,omitempty"`
 }
 

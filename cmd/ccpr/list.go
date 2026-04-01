@@ -68,9 +68,21 @@ func runList(args []string) error {
 	}
 
 	if flagFormat == "json" {
+		items := make([]listJSONItem, len(prs))
+		for i, pr := range prs {
+			items[i] = listJSONItem{
+				PRId:              pr.PRId,
+				Title:             pr.Title,
+				AuthorARN:         pr.AuthorARN,
+				SourceBranch:      pr.SourceBranch,
+				DestinationBranch: pr.DestinationBranch,
+				Status:            pr.Status,
+				CreationDate:      pr.CreationDate.Format("2006-01-02T15:04:05Z07:00"),
+			}
+		}
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
-		return enc.Encode(prs)
+		return enc.Encode(items)
 	}
 
 	if len(prs) == 0 {
@@ -92,6 +104,16 @@ func runList(args []string) error {
 	}
 
 	return nil
+}
+
+type listJSONItem struct {
+	PRId              string `json:"prId"`
+	Title             string `json:"title"`
+	AuthorARN         string `json:"authorArn"`
+	SourceBranch      string `json:"sourceBranch"`
+	DestinationBranch string `json:"destinationBranch"`
+	Status            string `json:"status"`
+	CreationDate      string `json:"creationDate"`
 }
 
 func truncate(s string, max int) string {

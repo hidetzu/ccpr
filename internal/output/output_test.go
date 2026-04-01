@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
-	"time"
 )
 
 var testOutput = ReviewOutput{
@@ -26,7 +25,7 @@ var testOutput = ReviewOutput{
 			Author:    "reviewer",
 			AuthorARN: "arn:aws:iam::123:user/reviewer",
 			Content:   "Looks good",
-			Timestamp: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
+			Timestamp: "2026-01-15T10:30:00Z",
 		},
 		{
 			CommentId: "c2",
@@ -34,7 +33,7 @@ var testOutput = ReviewOutput{
 			Author:    "reviewer",
 			AuthorARN: "arn:aws:iam::123:user/reviewer",
 			Content:   "Check this file",
-			Timestamp: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
+			Timestamp: "2026-01-15T10:30:00Z",
 			FilePath:  "src/login.go",
 		},
 	},
