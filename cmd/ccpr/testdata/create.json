@@ -1,0 +1,8 @@
+{
+  "prId": "42",
+  "title": "Add feature X",
+  "repository": "my-repo",
+  "sourceBranch": "feature/add-x",
+  "destinationBranch": "main",
+  "url": "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/42"
+}

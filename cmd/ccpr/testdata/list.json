@@ -1,0 +1,20 @@
+[
+  {
+    "prId": "42",
+    "title": "Add feature X",
+    "authorArn": "arn:aws:iam::123:user/dev",
+    "sourceBranch": "feature/x",
+    "destinationBranch": "main",
+    "status": "OPEN",
+    "creationDate": "2026-04-01T10:00:00Z"
+  },
+  {
+    "prId": "41",
+    "title": "Fix bug Y",
+    "authorArn": "arn:aws:iam::123:user/reviewer",
+    "sourceBranch": "fix/y",
+    "destinationBranch": "main",
+    "status": "OPEN",
+    "creationDate": "2026-03-30T09:00:00Z"
+  }
+]

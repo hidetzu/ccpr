@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "prId": "42",
+    "title": "Fix login bug",
+    "description": "Fixes timeout on login",
+    "author": "dev",
+    "authorArn": "arn:aws:iam::123:user/dev",
+    "sourceBranch": "fix/login",
+    "destinationBranch": "main",
+    "status": "OPEN",
+    "creationDate": "2026-01-15T10:30:00Z"
+  },
+  "comments": [
+    {
+      "commentId": "c1",
+      "author": "reviewer",
+      "authorArn": "arn:aws:iam::123:user/reviewer",
+      "content": "Looks good",
+      "timestamp": "2026-01-15T10:30:00Z"
+    },
+    {
+      "commentId": "c2",
+      "inReplyTo": "c1",
+      "author": "reviewer",
+      "authorArn": "arn:aws:iam::123:user/reviewer",
+      "content": "Check this file",
+      "timestamp": "2026-01-15T10:30:00Z",
+      "filePath": "src/login.go"
+    }
+  ],
+  "diff": "diff --git a/file1 b/file1\n--- a/file1\n+++ b/file1\n@@ -1 +1 @@\n-old\n+new\n"
+}
