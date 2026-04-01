@@ -17,12 +17,12 @@ Add the following to the `CLAUDE.md` in your CodeCommit-based project:
 
 This project uses AWS CodeCommit. To review a pull request:
 
-1. Run `ccpr review <codecommit-pr-url> --json` to fetch PR data
+1. Run `ccpr review <codecommit-pr-url> --format json` to fetch PR data
 2. Use the JSON output to review the changes
 
 Example:
 \```bash
-ccpr review <codecommit-pr-url> --json
+ccpr review <codecommit-pr-url> --format json
 \```
 
 Do not use `gh` for this repository — it is hosted on AWS CodeCommit, not GitHub.
@@ -31,7 +31,7 @@ Do not use `gh` for this repository — it is hosted on AWS CodeCommit, not GitH
 ## How it works
 
 1. Developer shares a CodeCommit PR URL with Claude Code
-2. Claude Code runs `ccpr review <url> --json`
+2. Claude Code runs `ccpr review <url> --format json`
 3. ccpr returns structured JSON containing:
    - PR metadata (title, author, status, branches)
    - Comments
@@ -44,7 +44,7 @@ Do not use `gh` for this repository — it is hosted on AWS CodeCommit, not GitH
 User: Review this PR
       https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/123
 
-Claude: (runs ccpr review <url> --json, reads the output, provides review)
+Claude: (runs ccpr review <url> --format json, reads the output, provides review)
 ```
 
 ## Using the skill (recommended)
