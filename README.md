@@ -194,6 +194,13 @@ repoMappings:
 2. `--region` flag
 3. `region` in config file
 
+## JSON Output Contract
+
+ccpr guarantees stable JSON output within v1.x releases. See:
+
+- [JSON Output Reference](docs/json-schema.md) — field definitions for all commands
+- [Versioning Policy](docs/versioning.md) — SemVer rules and backward compatibility guarantees
+
 ## Development
 
 ```bash
