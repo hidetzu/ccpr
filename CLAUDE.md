@@ -27,6 +27,10 @@ The primary use case: developer runs `ccpr review <url> --json`, passes the outp
   - docs/requirements.md
   - docs/spec.md
   before writing implementation code
+- Do not introduce breaking changes to JSON output (see docs/versioning.md)
+  - Do not rename, remove, or change the type of existing JSON fields
+  - New fields must be backward-compatible additions only
+  - If golden tests in `cmd/ccpr/testdata/` need updating, flag for explicit review
 
 ## Scope
 

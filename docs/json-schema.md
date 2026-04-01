@@ -2,7 +2,7 @@
 
 This document defines the JSON output contract for ccpr v1. All field names, types, and required/optional semantics described here are guaranteed stable within v1.x releases.
 
-See [versioning.md](versioning.md) for the full stability policy (planned, tracked in #42).
+See [versioning.md](versioning.md) for the full stability policy.
 
 ## Conventions
 
