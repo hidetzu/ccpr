@@ -118,7 +118,7 @@ func runReview(args []string) error {
 			SourceBranch:      metadata.SourceBranch,
 			DestinationBranch: metadata.DestinationBranch,
 			Status:            metadata.Status,
-			CreationDate:      metadata.CreationDate.Format("2006-01-02T15:04:05Z"),
+			CreationDate:      metadata.CreationDate.Format("2006-01-02T15:04:05Z07:00"),
 		},
 		Comments: convertComments(comments),
 		Diff:     diffText,

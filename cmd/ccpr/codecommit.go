@@ -21,7 +21,7 @@ func convertComments(src []codecommit.Comment) []output.Comment {
 			Author:    output.ShortAuthor(c.Author),
 			AuthorARN: c.Author,
 			Content:   c.Content,
-			Timestamp: c.Timestamp,
+			Timestamp: c.Timestamp.Format("2006-01-02T15:04:05Z07:00"),
 			FilePath:  c.FilePath,
 		}
 	}
