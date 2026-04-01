@@ -38,6 +38,12 @@ MVP implemented:
 - Output: summary (default), JSON (`--json`), patch (`--patch`)
 - AWS profile resolution (`--profile` > config > env > default)
 - Config file with repo mappings
+- PR listing (`ccpr list`)
+- Open PR in browser (`ccpr open`)
+- PR creation (`ccpr create`)
+- Post comment to PR (`ccpr comment`)
+- Config initialization (`ccpr init`)
+- Environment validation (`ccpr doctor`)
 
 Out of scope (for now):
 

@@ -62,6 +62,7 @@ See [docs/claude-integration.md](docs/claude-integration.md) for more options.
 ## Use Cases
 
 - **AI code review** — `ccpr review <url> --format json` + Claude Code
+- **Create a PR** — `ccpr create --repo <repo> --title "Add feature" --dest main`
 - **Post review comments** — `ccpr comment <url> --body-file review.md`
 - **Quick PR summary** — `ccpr review <url>` for a human-readable overview
 - **CI integration** — pipe JSON/patch output to automated pipelines
@@ -126,6 +127,15 @@ ccpr list --repo <repo> --status all            # All PRs
 ccpr list --repo <repo> --format json           # JSON output
 ```
 
+### Create a PR
+
+```bash
+ccpr create --repo <repo> --title "Add feature X" --dest main
+ccpr create --repo <repo> --title "Add feature X" --dest main --source feature/x
+ccpr create --repo <repo> --title "Add feature X" --dest main --description-file desc.md
+ccpr create --repo <repo> --title "Add feature X" --dest main --format json
+```
+
 ### Post a comment
 
 ```bash
@@ -144,15 +154,20 @@ ccpr doctor                 # Validate environment and config
 ### Flags
 
 ```
---format     Output format: summary (default), json, patch (review only)
---body       Comment body (use - for stdin; comment only)
---body-file  Path to comment body file (comment only)
---profile    AWS profile name
---region     AWS region
---config     Path to configuration file
---repo       Repository name
---pr-id      Pull request ID (review/comment only)
---status     PR status filter: open, closed, all (list only)
+--format           Output format: summary (default), json, patch (review only)
+--title            PR title (create only, required)
+--dest             Destination branch (create only, required)
+--source           Source branch (create only, defaults to current branch)
+--description      PR description; use - for stdin (create only)
+--description-file Path to PR description file (create only)
+--body             Comment body; use - for stdin (comment only)
+--body-file        Path to comment body file (comment only)
+--profile          AWS profile name
+--region           AWS region
+--config           Path to configuration file
+--repo             Repository name
+--pr-id            Pull request ID (review/comment only)
+--status           PR status filter: open, closed, all (list only)
 ```
 
 ## Configuration
