@@ -40,6 +40,14 @@ ccpr review <codecommit-pr-url>
 
 ## AI Integration
 
+### Install from Claude Code
+
+Paste this into Claude Code to install and set up ccpr:
+
+```
+Read https://raw.githubusercontent.com/hidetzu/ccpr/main/docs/claude-integration.md and install ccpr
+```
+
 ### Pipe to Claude
 
 ```bash
