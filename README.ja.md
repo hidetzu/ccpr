@@ -111,6 +111,14 @@ ccpr doctor            # 環境と設定を検証
 
 ## Claude Code との連携
 
+### Claude Code からインストール
+
+Claude Code に以下を貼り付けると、インストールからセットアップまで実行できます。
+
+```
+https://raw.githubusercontent.com/hidetzu/ccpr/main/docs/claude-integration.md を見てインストールして
+```
+
 ### パイプで渡す
 
 ```bash
