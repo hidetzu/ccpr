@@ -8,6 +8,8 @@
 
 Turn a CodeCommit pull request into AI-ready review input in one command.
 
+[日本語ドキュメントはこちら](README.ja.md)
+
 ```bash
 ccpr review <PR_URL> --format json | claude -p "Review this PR"
 ```
@@ -27,6 +29,8 @@ CodeCommit's CLI is fragmented — gathering PR metadata, comments, and diffs re
 One command gives you everything. JSON output plugs directly into Claude Code or any AI tool for instant review.
 
 ## Quick Start
+
+Requires [Go](https://go.dev/dl/) 1.23 or later.
 
 ```bash
 go install github.com/hidetzu/ccpr/cmd/ccpr@latest
