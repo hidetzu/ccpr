@@ -6,29 +6,56 @@
 [![Release](https://img.shields.io/github/v/release/hidetzu/ccpr)](https://github.com/hidetzu/ccpr/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Turn a CodeCommit pull request into AI-ready review input in one command.
+## Turn CodeCommit PRs into AI-ready input — in one command
+
+**PR → AI review, fully automated.**
 
 [日本語ドキュメントはこちら](README.ja.md)
+
+---
+
+## If you use CodeCommit and want AI-powered reviews:
+
+- Gathering diffs, comments, and metadata requires multiple API calls
+- AWS CLI is fragmented — no single command for PR data
+- Copy-pasting into AI tools is a waste of time
+
+ccpr solves all of this.
+
+---
+
+## The simplest way to use it
 
 ```bash
 ccpr review <PR_URL> --format json | claude -p "Review this PR"
 ```
 
-## What ccpr does
-
-- Fetch PR metadata, comments, and diffs from CodeCommit in one shot
-- Output as JSON / Patch — ready to pipe into AI tools
-- Automate code review with Claude Code
+---
 
 ## Before / After
 
-**Without ccpr:**
-CodeCommit's CLI is fragmented — gathering PR metadata, comments, and diffs requires multiple API calls and manual assembly. Feeding that to AI tools means even more glue work.
+### Without ccpr (painful)
 
-**With ccpr:**
-One command gives you everything. JSON output plugs directly into Claude Code or any AI tool for instant review.
+```bash
+aws codecommit get-pull-request --pull-request-id 123
+aws codecommit get-comments-for-pull-request --pull-request-id 123
+aws codecommit get-differences --repository-name my-repo \
+  --before-commit-specifier main --after-commit-specifier feature/x
 
-## Quick Start
+# + manually assemble and paste into AI...
+```
+
+### With ccpr (1 command)
+
+```bash
+ccpr review <PR_URL> --format json | claude -p "Review this PR"
+```
+
+Fetches PR metadata, comments, and diff in one shot — ready for AI.
+
+---
+
+## Quick Start (30 seconds)
 
 Requires [Go](https://go.dev/dl/) 1.23 or later.
 
@@ -38,7 +65,25 @@ ccpr init
 ccpr review <codecommit-pr-url>
 ```
 
-## AI Integration
+---
+
+## Use Cases
+
+- AI code review (Claude / GPT)
+- PR summary generation
+- Automated review in CI
+- CLI-only PR workflow (list / review / create)
+- Auto-post review comments
+
+---
+
+## Claude Code Integration
+
+### Pipe to Claude (quickest)
+
+```bash
+ccpr review <PR_URL> --format json | claude -p "Review this PR"
+```
 
 ### Install from Claude Code
 
@@ -48,41 +93,68 @@ Paste this into Claude Code to install and set up ccpr:
 Read https://raw.githubusercontent.com/hidetzu/ccpr/main/docs/claude-integration.md and install ccpr
 ```
 
-### Pipe to Claude
-
-```bash
-ccpr review <PR_URL> --format json | claude -p "Review this PR"
-```
-
 ### Claude Code skill (recommended)
-
-ccpr provides a Claude Code skill for direct PR review integration.
 
 ```bash
 mkdir -p .claude/skills/ccpr-review
 cp /path/to/ccpr/examples/claude/ccpr-review/SKILL.md .claude/skills/ccpr-review/
 ```
 
-Then in Claude Code:
-
 ```
 /ccpr-review <codecommit-pr-url>
 ```
 
-See [docs/claude-integration.md](docs/claude-integration.md) for more options.
+See [docs/claude-integration.md](docs/claude-integration.md) for full setup guide.
 
-## Use Cases
+---
 
-- **AI code review** — `ccpr review <url> --format json` + Claude Code
-- **Create a PR** — `ccpr create --repo <repo> --title "Add feature" --dest main`
-- **Post review comments** — `ccpr comment <url> --body-file review.md`
-- **Quick PR summary** — `ccpr review <url>` for a human-readable overview
-- **CI integration** — pipe JSON/patch output to automated pipelines
-- **CLI-based PR browsing** — `ccpr list` + `ccpr review` without opening the console
+## What ccpr can do
 
-## Output Examples
+- Fetch PR data (summary / json / patch)
+- List PRs
+- Create PRs
+- Post comments
+- Open PRs in browser
+- Full CodeCommit workflow from CLI
 
-### Summary (default)
+---
+
+## Detailed Reference
+
+<details>
+<summary>Commands</summary>
+
+```bash
+# Review
+ccpr review <PR_URL>                 # Summary (default)
+ccpr review <PR_URL> --format json   # JSON for AI tools
+ccpr review <PR_URL> --format patch  # Diff only
+
+# List
+ccpr list --repo <repo>                         # OPEN PRs (default)
+ccpr list --repo <repo> --status closed         # CLOSED PRs
+ccpr list --repo <repo> --format json           # JSON output
+
+# Create
+ccpr create --repo <repo> --title "Add feature X" --dest main
+ccpr create --repo <repo> --title "Add feature X" --dest main --source feature/x
+
+# Comment
+ccpr comment <PR_URL> --body "LGTM"
+ccpr comment <PR_URL> --body-file review.md
+
+# Other
+ccpr open <PR_URL>          # Open PR in browser
+ccpr init                   # Generate config file
+ccpr doctor                 # Validate environment and config
+```
+
+</details>
+
+<details>
+<summary>Output examples</summary>
+
+#### Summary (default)
 
 ```
 $ ccpr review <codecommit-pr-url>
@@ -100,16 +172,14 @@ Files:    7 changed
 Fix session timeout on login page
 ```
 
-### JSON (for AI tools)
+#### JSON (for AI tools)
 
-```
-$ ccpr review <codecommit-pr-url> --format json
+```json
 {
   "metadata": {
     "prId": "883",
     "title": "Fix login bug",
     "author": "example-user",
-    "authorArn": "arn:aws:iam::123456789012:user/example-user",
     "sourceBranch": "feature/login",
     "destinationBranch": "main",
     "status": "OPEN",
@@ -120,67 +190,19 @@ $ ccpr review <codecommit-pr-url> --format json
 }
 ```
 
-## Usage
+</details>
 
-### Review a PR
+<details>
+<summary>JSON output contract</summary>
 
-```bash
-ccpr review <codecommit-pr-url>                 # Summary (default)
-ccpr review <codecommit-pr-url> --format json   # JSON for AI tools
-ccpr review <codecommit-pr-url> --format patch  # Diff only
-```
+ccpr guarantees stable JSON output within v1.x releases.
 
-### List PRs
+- [JSON Output Reference](docs/json-schema.md) — field definitions for all commands
+- [Versioning Policy](docs/versioning.md) — SemVer rules and backward compatibility guarantees
 
-```bash
-ccpr list --repo <repo>                         # OPEN PRs (default)
-ccpr list --repo <repo> --status closed         # CLOSED PRs
-ccpr list --repo <repo> --status all            # All PRs
-ccpr list --repo <repo> --format json           # JSON output
-```
+</details>
 
-### Create a PR
-
-```bash
-ccpr create --repo <repo> --title "Add feature X" --dest main
-ccpr create --repo <repo> --title "Add feature X" --dest main --source feature/x
-ccpr create --repo <repo> --title "Add feature X" --dest main --description-file desc.md
-ccpr create --repo <repo> --title "Add feature X" --dest main --format json
-```
-
-### Post a comment
-
-```bash
-ccpr comment <codecommit-pr-url> --body "LGTM"
-ccpr comment <codecommit-pr-url> --body-file review.md
-echo "Looks good" | ccpr comment <codecommit-pr-url> --body -
-```
-
-### Setup and diagnostics
-
-```bash
-ccpr init                   # Generate config file
-ccpr doctor                 # Validate environment and config
-```
-
-### Flags
-
-```
---format           Output format: summary (default), json, patch (review only)
---title            PR title (create only, required)
---dest             Destination branch (create only, required)
---source           Source branch (create only, defaults to current branch)
---description      PR description; use - for stdin (create only)
---description-file Path to PR description file (create only)
---body             Comment body; use - for stdin (comment only)
---body-file        Path to comment body file (comment only)
---profile          AWS profile name
---region           AWS region
---config           Path to configuration file
---repo             Repository name
---pr-id            Pull request ID (review/comment only)
---status           PR status filter: open, closed, all (list only)
-```
+---
 
 ## Configuration
 
@@ -193,25 +215,22 @@ repoMappings:
   your-repo: /path/to/local/clone
 ```
 
-### AWS Profile Resolution
+**AWS Profile Resolution:** `--profile` flag > config file > `AWS_PROFILE` env > default
 
-1. `--profile` flag
-2. `profile` in config file
-3. `AWS_PROFILE` environment variable
-4. default
+**AWS Region Resolution:** PR URL (auto) > `--region` flag > config file
 
-### AWS Region Resolution
+---
 
-1. PR URL (extracted automatically)
-2. `--region` flag
-3. `region` in config file
+## Troubleshooting
 
-## JSON Output Contract
+- Run `ccpr doctor` first
+- Check AWS credentials: `aws sts get-caller-identity --profile your-aws-profile`
+- Using SSO? Run `aws sso login --profile your-aws-profile` first
+- `no local path mapping` → add repo to `repoMappings` in config.yaml
+- `region is required` → set via `--region` flag or config file
+- Empty diff → run `git fetch origin` and retry
 
-ccpr guarantees stable JSON output within v1.x releases. See:
-
-- [JSON Output Reference](docs/json-schema.md) — field definitions for all commands
-- [Versioning Policy](docs/versioning.md) — SemVer rules and backward compatibility guarantees
+---
 
 ## Development
 
