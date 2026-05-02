@@ -91,11 +91,15 @@ Constraints:
 
 - Map repository name to local filesystem path
 - Configuration file defines mapping
+- Path values support `~` and `~/` as a prefix for the user's home directory
+  - `~/src/repo` → `/home/<user>/src/repo` (expanded at config load time)
+  - `~user/foo` form is **not** supported (returned as-is)
 
 Example:
 
 repoMappings:
   my-repo: /work/src/my-repo
+  another-repo: ~/src/another-repo
 
 - Return error if mapping is missing
 
