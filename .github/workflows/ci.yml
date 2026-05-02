@@ -38,3 +38,27 @@ jobs:
       - uses: golangci/golangci-lint-action@v7
         with:
           version: v2.11.4
+
+  pr-template:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check 'Type of change' is selected
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PR_BODY:-}" ]; then
+            echo "::error::PR body is empty. Please fill out the PR template."
+            exit 1
+          fi
+          section=$(printf '%s\n' "$PR_BODY" | awk '
+            /^## Type of change/ { in_section=1; next }
+            /^## / && in_section { in_section=0 }
+            in_section { print }
+          ')
+          if ! printf '%s\n' "$section" | grep -qE '^[[:space:]]*- \[[xX]\]'; then
+            echo "::error::Please check at least one item under '## Type of change' in the PR description."
+            exit 1
+          fi
+          echo "OK: Type of change has at least one selection."
