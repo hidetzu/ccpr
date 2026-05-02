@@ -76,6 +76,9 @@ func runCreate(args []string) error {
 	}
 
 	region := cfg.ResolveRegion(flagRegion)
+	if region == "" {
+		return fmt.Errorf("region is required: use --region flag or set region in config file")
+	}
 	profile := cfg.ResolveProfile(flagProfile)
 
 	// Resolve source branch
