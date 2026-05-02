@@ -93,8 +93,14 @@ Example `.ccpr.yaml`:
 ```yaml
 repoMappings:
   my-repo: /work/src/my-repo
-  another-repo: /home/user/projects/another-repo
+  another-repo: ~/projects/another-repo
 ```
+
+### Path Expansion
+
+`repoMappings` values support a leading `~` or `~/` which is expanded to the
+current user's home directory at config load time. Other forms such as
+`~otheruser/foo` are returned unchanged.
 
 ### Output
 

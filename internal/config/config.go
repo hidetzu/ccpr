@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -125,5 +126,31 @@ func loadFrom(path string) (*Config, error) {
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("parsing config %s: %w", path, err)
 	}
+
+	for name, p := range cfg.RepoMappings {
+		expanded, err := expandHome(p)
+		if err != nil {
+			return nil, fmt.Errorf("expanding repoMappings[%q]: %w", name, err)
+		}
+		cfg.RepoMappings[name] = expanded
+	}
+
 	return &cfg, nil
+}
+
+// expandHome expands a leading "~" or "~/" in path to the user's home directory.
+// Returns the path unchanged for other forms (e.g., "~user/foo", absolute paths,
+// relative paths).
+func expandHome(path string) (string, error) {
+	if path != "~" && !strings.HasPrefix(path, "~/") {
+		return path, nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	if path == "~" {
+		return home, nil
+	}
+	return filepath.Join(home, path[2:]), nil
 }

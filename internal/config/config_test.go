@@ -152,6 +152,40 @@ func TestResolveRegion(t *testing.T) {
 	}
 }
 
+func TestLoad_ExpandsHomeInRepoMappings(t *testing.T) {
+	dir := t.TempDir()
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	cfgPath := filepath.Join(dir, "config.yaml")
+	// Note: bare `~` is YAML null, so the literal "~" string must be quoted.
+	writeFile(t, cfgPath, `repoMappings:
+  with-tilde-slash: ~/src/repo
+  bare-tilde: '~'
+  absolute: /work/src/abs
+  relative: rel/path
+  other-user: ~someone/else
+`)
+
+	cfg, _, err := Load(cfgPath)
+	if err != nil {
+		t.Fatalf("Load(%q) unexpected error: %v", cfgPath, err)
+	}
+
+	cases := map[string]string{
+		"with-tilde-slash": filepath.Join(home, "src/repo"),
+		"bare-tilde":       home,
+		"absolute":         "/work/src/abs",
+		"relative":         "rel/path",
+		"other-user":       "~someone/else",
+	}
+	for name, want := range cases {
+		if got := cfg.RepoMappings[name]; got != want {
+			t.Errorf("%s: got %q, want %q", name, got, want)
+		}
+	}
+}
+
 func writeFile(t *testing.T, path, content string) {
 	t.Helper()
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
