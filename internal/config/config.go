@@ -17,12 +17,21 @@ type Config struct {
 }
 
 // ResolveRegion returns the AWS region to use.
-// Priority: flagRegion > config file > "".
+// Priority: flagRegion > config file > AWS_REGION env > AWS_DEFAULT_REGION env > "".
 func (c *Config) ResolveRegion(flagRegion string) string {
 	if flagRegion != "" {
 		return flagRegion
 	}
-	return c.Region
+	if c.Region != "" {
+		return c.Region
+	}
+	if env := os.Getenv("AWS_REGION"); env != "" {
+		return env
+	}
+	if env := os.Getenv("AWS_DEFAULT_REGION"); env != "" {
+		return env
+	}
+	return ""
 }
 
 // ResolveProfile returns the AWS profile to use.

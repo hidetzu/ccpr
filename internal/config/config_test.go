@@ -135,6 +135,10 @@ func TestResolveRepoPath_NotMapped(t *testing.T) {
 }
 
 func TestResolveRegion(t *testing.T) {
+	// Isolate from any AWS_* env present in the test runner's environment.
+	t.Setenv("AWS_REGION", "")
+	t.Setenv("AWS_DEFAULT_REGION", "")
+
 	cfg := &Config{Region: "ap-northeast-1"}
 
 	// Flag takes priority
@@ -145,10 +149,47 @@ func TestResolveRegion(t *testing.T) {
 	if got := cfg.ResolveRegion(""); got != "ap-northeast-1" {
 		t.Errorf("config fallback: got %q, want ap-northeast-1", got)
 	}
-	// Empty config, empty flag
+	// Empty config, empty flag, no env
 	empty := &Config{}
 	if got := empty.ResolveRegion(""); got != "" {
 		t.Errorf("empty: got %q, want empty", got)
+	}
+}
+
+func TestResolveRegion_EnvFallback(t *testing.T) {
+	cfg := &Config{}
+
+	// AWS_REGION fallback when no flag and no config
+	t.Setenv("AWS_REGION", "us-west-2")
+	t.Setenv("AWS_DEFAULT_REGION", "")
+	if got := cfg.ResolveRegion(""); got != "us-west-2" {
+		t.Errorf("AWS_REGION: got %q, want us-west-2", got)
+	}
+
+	// AWS_DEFAULT_REGION fallback when AWS_REGION not set
+	t.Setenv("AWS_REGION", "")
+	t.Setenv("AWS_DEFAULT_REGION", "eu-central-1")
+	if got := cfg.ResolveRegion(""); got != "eu-central-1" {
+		t.Errorf("AWS_DEFAULT_REGION: got %q, want eu-central-1", got)
+	}
+
+	// AWS_REGION takes priority over AWS_DEFAULT_REGION
+	t.Setenv("AWS_REGION", "us-west-2")
+	t.Setenv("AWS_DEFAULT_REGION", "eu-central-1")
+	if got := cfg.ResolveRegion(""); got != "us-west-2" {
+		t.Errorf("AWS_REGION over AWS_DEFAULT_REGION: got %q, want us-west-2", got)
+	}
+
+	// Config takes priority over env
+	cfgWithRegion := &Config{Region: "ap-northeast-1"}
+	t.Setenv("AWS_REGION", "us-west-2")
+	if got := cfgWithRegion.ResolveRegion(""); got != "ap-northeast-1" {
+		t.Errorf("config over env: got %q, want ap-northeast-1", got)
+	}
+
+	// Flag takes priority over everything
+	if got := cfgWithRegion.ResolveRegion("eu-west-1"); got != "eu-west-1" {
+		t.Errorf("flag over all: got %q, want eu-west-1", got)
 	}
 }
 

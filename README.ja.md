@@ -216,7 +216,7 @@ repoMappings:
 
 **AWS プロファイル解決順序:** `--profile` フラグ > 設定ファイル > `AWS_PROFILE` 環境変数 > デフォルト
 
-**AWS リージョン解決順序:** PR URL（自動検出）> `--region` フラグ > 設定ファイル
+**AWS リージョン解決順序:** PR URL（自動検出）> `--region` フラグ > 設定ファイル > `AWS_REGION` 環境変数 > `AWS_DEFAULT_REGION` 環境変数
 
 ---
 
@@ -226,7 +226,7 @@ repoMappings:
 - AWS認証確認: `aws sts get-caller-identity --profile your-aws-profile`
 - SSOの場合: `aws sso login --profile your-aws-profile`
 - `no local path mapping` → `config.yaml` の `repoMappings` を追加
-- `region is required` → `--region` フラグか設定ファイルで指定
+- `region is required` → `--region` フラグ、設定ファイル、または `AWS_REGION` / `AWS_DEFAULT_REGION` 環境変数で指定
 - diff が空 → `git fetch origin` を実行してから再試行
 
 ---

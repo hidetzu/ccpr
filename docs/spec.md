@@ -302,7 +302,7 @@ ccpr open --repo <repo> --pr-id <id> --region <region>
 
 ### Error Cases
 
-- `MISSING_REGION` — region not provided and not in config (exit code 1)
+- `MISSING_REGION` — region could not be resolved from URL, `--region`, config, `AWS_REGION`, or `AWS_DEFAULT_REGION` (exit code 1)
 - `INVALID_URL` — malformed PR URL (exit code 1)
 
 ## Comment Command (FR-14)
