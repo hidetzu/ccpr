@@ -217,7 +217,7 @@ repoMappings:
 
 **AWS Profile Resolution:** `--profile` flag > config file > `AWS_PROFILE` env > default
 
-**AWS Region Resolution:** PR URL (auto) > `--region` flag > config file
+**AWS Region Resolution:** PR URL (auto) > `--region` flag > config file > `AWS_REGION` env > `AWS_DEFAULT_REGION` env
 
 ---
 
@@ -227,7 +227,7 @@ repoMappings:
 - Check AWS credentials: `aws sts get-caller-identity --profile your-aws-profile`
 - Using SSO? Run `aws sso login --profile your-aws-profile` first
 - `no local path mapping` → add repo to `repoMappings` in config.yaml
-- `region is required` → set via `--region` flag or config file
+- `region is required` → set via `--region` flag, config file, or `AWS_REGION` / `AWS_DEFAULT_REGION` env
 - Empty diff → run `git fetch origin` and retry
 
 ---

@@ -58,7 +58,7 @@ func runOpen(args []string) error {
 		region = cfg.ResolveRegion(flagRegion)
 	}
 	if region == "" {
-		return fmt.Errorf("region is required: use --region flag or set region in config file")
+		return fmt.Errorf("region is required: use --region flag, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
 	}
 
 	openURL := buildConsoleURL(region, repo, prID)

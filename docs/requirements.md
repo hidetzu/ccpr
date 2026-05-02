@@ -180,7 +180,7 @@ repoMappings:
 - Open a CodeCommit PR in the default browser
 - Resolve PR parameters from URL or `--repo` + `--pr-id` flags
 - Build CodeCommit console URL from region, repository, and PR ID
-- Region is required (from URL, `--region` flag, or config)
+- Region is required (from URL, or resolved per FR-17)
 - Fall back to printing URL to stdout if browser cannot be opened
 
 ---
@@ -198,7 +198,19 @@ repoMappings:
 - `--description` and `--description-file` are mutually exclusive
 - Summary output (default): PR ID, title, source/destination branches, console URL
 - JSON output (`--format json`): machine-readable result for piping to other commands
-- Follow AWS profile/region resolution priority (FR-09)
+- Follow AWS profile resolution priority (FR-09) and region resolution priority (FR-17)
+
+---
+
+### FR-17 AWS Region Resolution
+
+- Resolve AWS region in the following order:
+  1. `--region` flag (explicit)
+  2. `region` field in config file
+  3. `AWS_REGION` environment variable
+  4. `AWS_DEFAULT_REGION` environment variable
+  5. empty (commands that require a region will error with guidance)
+- The env-variable fallbacks match the AWS SDK convention so users with `AWS_REGION` already set in their shell do not need to duplicate it in `~/.config/ccpr/config.yaml`
 
 ---
 
