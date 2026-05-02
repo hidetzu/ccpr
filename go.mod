@@ -1,6 +1,6 @@
 module github.com/hidetzu/ccpr
 
-go 1.26.1
+go 1.24
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.4 // indirect

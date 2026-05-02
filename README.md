@@ -57,7 +57,7 @@ Fetches PR metadata, comments, and diff in one shot — ready for AI.
 
 ## Quick Start (30 seconds)
 
-Requires [Go](https://go.dev/dl/) 1.23 or later.
+Requires [Go](https://go.dev/dl/) 1.24 or later.
 
 ```bash
 go install github.com/hidetzu/ccpr/cmd/ccpr@latest

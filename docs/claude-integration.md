@@ -8,7 +8,7 @@ This guide explains how to install and set up ccpr for AI-assisted CodeCommit PR
 go install github.com/hidetzu/ccpr/cmd/ccpr@latest
 ```
 
-Requires [Go](https://go.dev/dl/) 1.23 or later. Verify the installation:
+Requires [Go](https://go.dev/dl/) 1.24 or later. Verify the installation:
 
 ```bash
 ccpr --version
