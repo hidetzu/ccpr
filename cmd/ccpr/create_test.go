@@ -101,6 +101,22 @@ func TestRunCreate_InvalidFormat(t *testing.T) {
 	}
 }
 
+func TestRunCreate_MissingRegion(t *testing.T) {
+	dir := t.TempDir()
+	cfgPath := filepath.Join(dir, "config.yaml")
+	if err := os.WriteFile(cfgPath, []byte("repoMappings:\n  my-repo: .\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := runCreate([]string{"--config", cfgPath, "--repo", "my-repo", "--title", "test", "--dest", "main", "--source", "feature"})
+	if err == nil {
+		t.Fatal("expected error for missing region")
+	}
+	if !strings.Contains(err.Error(), "region is required") {
+		t.Errorf("error should mention region: %v", err)
+	}
+}
+
 func TestBuildConsoleURL(t *testing.T) {
 	url := buildConsoleURL("ap-northeast-1", "my-repo", "42")
 	want := "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/42"

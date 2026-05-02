@@ -81,6 +81,9 @@ func runComment(args []string) error {
 	if region == "" {
 		region = cfg.ResolveRegion(flagRegion)
 	}
+	if region == "" {
+		return fmt.Errorf("region is required: use --region flag or set region in config file")
+	}
 	profile := cfg.ResolveProfile(flagProfile)
 
 	// Get PR metadata for commit IDs

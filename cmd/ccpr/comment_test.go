@@ -86,6 +86,22 @@ func TestRunComment_PartialFlags(t *testing.T) {
 	}
 }
 
+func TestRunComment_MissingRegion(t *testing.T) {
+	dir := t.TempDir()
+	cfgPath := filepath.Join(dir, "config.yaml")
+	if err := os.WriteFile(cfgPath, []byte("repoMappings:\n  my-repo: .\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := runComment([]string{"--config", cfgPath, "--repo", "my-repo", "--pr-id", "123", "--body", "test"})
+	if err == nil {
+		t.Fatal("expected error for missing region")
+	}
+	if !strings.Contains(err.Error(), "region is required") {
+		t.Errorf("error should mention region: %v", err)
+	}
+}
+
 func TestPrintCommentSummary(t *testing.T) {
 	var buf bytes.Buffer
 	err := printCommentSummary(&buf, "123", "abc-def", "user1", "2026-03-31T17:00:00+09:00")
