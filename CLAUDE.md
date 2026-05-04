@@ -93,6 +93,7 @@ Priority order:
 
 ```bash
 make build              # Build binary to bin/ccpr
+make build-mcp          # Build MCP server binary to bin/ccpr-mcp
 make test               # Run all tests with -v -race
 make lint               # golangci-lint v2.11.4
 make vet                # go vet

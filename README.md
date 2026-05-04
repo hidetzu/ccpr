@@ -57,7 +57,7 @@ Fetches PR metadata, comments, and diff in one shot — ready for AI.
 
 ## Quick Start (30 seconds)
 
-Requires [Go](https://go.dev/dl/) 1.24 or later.
+Requires [Go](https://go.dev/dl/) 1.25 or later.
 
 ```bash
 go install github.com/hidetzu/ccpr/cmd/ccpr@latest
@@ -105,6 +105,28 @@ cp /path/to/ccpr/examples/claude/ccpr-review/SKILL.md .claude/skills/ccpr-review
 ```
 
 See [docs/claude-integration.md](docs/claude-integration.md) for full setup guide.
+
+### MCP server
+
+ccpr also provides an experimental MCP server binary for Claude Code and other MCP clients. The first tool is read-only:
+
+```text
+ccpr_list
+```
+
+Build it locally:
+
+```bash
+make build-mcp
+```
+
+Register it with Claude Code:
+
+```bash
+claude mcp add ccpr -- /path/to/ccpr/bin/ccpr-mcp
+```
+
+Then ask Claude Code to list CodeCommit PRs for a repository. The tool accepts `repo`, `status`, `region`, `profile`, and `config`, and returns the same PR summary schema as `ccpr list --format json`.
 
 ---
 
@@ -236,6 +258,7 @@ repoMappings:
 
 ```bash
 make build    # Build binary to bin/ccpr
+make build-mcp # Build MCP server binary to bin/ccpr-mcp
 make test     # Run all tests with -v -race
 make lint     # golangci-lint
 make vet      # go vet
