@@ -142,7 +142,11 @@ Flags:
 
 Invalid values cause the CLI to exit with code 1 and print an error to stderr.
 
-## Shared List Use Case
+## Shared Use Cases
+
+The CLI and the MCP server share command logic via `internal/app`. Each shared use case is responsible for input validation, config/profile/region resolution, AWS calls, and producing the same data structure both surfaces serialize.
+
+### List
 
 `ccpr list` and the `ccpr_list` MCP tool both call the same internal use case.
 
@@ -174,7 +178,36 @@ Behavior:
 5. Call `ListPRs`
 6. Return `[]ListPullRequest`
 
-This keeps the CLI summary/JSON rendering and the MCP tool response backed by the same data retrieval path.
+### Review
+
+`ccpr review` and the `ccpr_review` MCP tool both call the same internal use case.
+
+```go
+type GetReviewOptions struct {
+    URL     string
+    Repo    string
+    PRId    string
+    Region  string
+    Profile string
+    Config  string
+}
+
+// ReviewPayload mirrors output.ReviewOutput so the JSON shape stays
+// stable across the CLI and MCP paths.
+type ReviewPayload = output.ReviewOutput
+```
+
+Behavior:
+1. If `URL` is set, parse it to extract region, repo, and PR ID. Otherwise require `Repo` and `PRId`.
+2. Load config
+3. Resolve profile and region using the standard priority rules (URL-derived region wins when present)
+4. Resolve the local repo path via the config repo mapping
+5. Create a CodeCommit client
+6. Fetch PR metadata and PR comments
+7. Generate the unified diff via local Git (merge-base strategy, see "Diff Strategy")
+8. Return a `ReviewPayload` with `metadata`, `comments`, and `diff`
+
+This keeps the CLI summary/JSON/patch rendering and the MCP tool response backed by the same data retrieval path.
 
 ## MCP Server (FR-18)
 
@@ -236,9 +269,63 @@ Output schema:
 
 The MCP tool wraps the PR summary array in an object under `pullRequests` because MCP tool output schemas must be objects. Each element of `pullRequests` uses the same field names and types as `ccpr list --format json`. Consumers must ignore unknown fields for forward compatibility.
 
+### Tool: `ccpr_review`
+
+Fetches PR metadata, comments, and the local-Git-generated diff for a single pull request.
+
+Input schema:
+
+```json
+{
+  "url": "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/42",
+  "repo": "my-repo",
+  "prId": "42",
+  "region": "ap-northeast-1",
+  "profile": "my-profile",
+  "config": "/path/to/config.yaml"
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `url` | string | conditional | | Full CodeCommit PR URL. When provided, takes priority for region/repo/PR ID resolution |
+| `repo` | string | conditional | | CodeCommit repository name. Required when `url` is not provided |
+| `prId` | string | conditional | | Pull request ID. Required when `url` is not provided |
+| `region` | string | no | | AWS region override |
+| `profile` | string | no | | AWS profile override |
+| `config` | string | no | | Path to ccpr config file |
+
+At least one of (`url`) or (`repo` and `prId`) must be provided.
+
+Output schema:
+
+```json
+{
+  "metadata": {
+    "prId": "42",
+    "title": "Add feature X",
+    "description": "...",
+    "author": "example",
+    "authorArn": "arn:aws:iam::123456789012:user/example",
+    "sourceBranch": "feature/x",
+    "destinationBranch": "main",
+    "status": "OPEN",
+    "creationDate": "2026-04-01T10:00:00Z"
+  },
+  "comments": [],
+  "diff": "diff --git a/... b/...\n..."
+}
+```
+
+The output is the same schema as `ccpr review --format json` (already an object, so no wrapper is needed). See `docs/json-schema.md` for the full field-level contract. Consumers must ignore unknown fields for forward compatibility.
+
+The MCP tool only exposes this structured shape. The CLI's `summary` and `patch` formats are not surfaced via MCP.
+
 ### Error Handling
 
-MCP tool errors are returned as tool call errors. Error messages follow the same validation and AWS/config guidance as the shared list use case:
+MCP tool errors are returned as tool call errors. Error messages follow the same validation and AWS/config guidance as the shared use cases.
+
+`ccpr_list`:
 
 - missing `repo`
 - invalid `status`
@@ -247,7 +334,18 @@ MCP tool errors are returned as tool call errors. Error messages follow the same
 - CodeCommit client creation failure
 - CodeCommit list failure
 
-Structured MCP-specific error codes are out of scope for the first MCP release.
+`ccpr_review`:
+
+- missing both `url` and (`repo` + `prId`)
+- invalid `url`
+- config load failure
+- missing region (when `url` does not supply one)
+- repo not mapped to a local Git path
+- CodeCommit client creation failure
+- PR metadata or comment fetch failure
+- local Git diff generation failure
+
+Structured MCP-specific error codes are out of scope for this release.
 
 ## Diff Strategy
 
