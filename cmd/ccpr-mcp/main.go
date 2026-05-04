@@ -19,7 +19,18 @@ type listInput struct {
 	Region  string `json:"region,omitempty" jsonschema:"AWS region"`
 }
 
+type listOutput struct {
+	PullRequests []app.ListPullRequest `json:"pullRequests" jsonschema:"PR summaries for the repository"`
+}
+
 func main() {
+	server := newServer()
+	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func newServer() *mcp.Server {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "ccpr-mcp",
 		Version: version,
@@ -30,12 +41,10 @@ func main() {
 		Description: "List AWS CodeCommit pull requests for a repository.",
 	}, listPullRequests)
 
-	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
-		log.Fatal(err)
-	}
+	return server
 }
 
-func listPullRequests(ctx context.Context, _ *mcp.CallToolRequest, input listInput) (*mcp.CallToolResult, []app.ListPullRequest, error) {
+func listPullRequests(ctx context.Context, _ *mcp.CallToolRequest, input listInput) (*mcp.CallToolResult, listOutput, error) {
 	prs, err := app.ListPullRequests(ctx, app.ListPullRequestsOptions{
 		Repo:    input.Repo,
 		Status:  input.Status,
@@ -44,9 +53,9 @@ func listPullRequests(ctx context.Context, _ *mcp.CallToolRequest, input listInp
 		Region:  input.Region,
 	}, newCodeCommitClient)
 	if err != nil {
-		return nil, nil, err
+		return nil, listOutput{}, err
 	}
-	return nil, prs, nil
+	return nil, listOutput{PullRequests: prs}, nil
 }
 
 func newCodeCommitClient(ctx context.Context, region, profile string) (codecommit.Client, error) {

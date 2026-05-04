@@ -92,7 +92,7 @@ Array of PR summary objects.
 
 Empty result: `[]`
 
-The MCP tool `ccpr_list` returns the same PR summary object array.
+The MCP tool `ccpr_list` wraps the same PR summary objects in an enclosing object under `pullRequests` (MCP tool output schemas must be objects).
 
 ---
 
