@@ -219,20 +219,22 @@ Input schema:
 Output schema:
 
 ```json
-[
-  {
-    "prId": "42",
-    "title": "Add feature X",
-    "authorArn": "arn:aws:iam::123456789012:user/example",
-    "sourceBranch": "feature/x",
-    "destinationBranch": "main",
-    "status": "OPEN",
-    "creationDate": "2026-04-01T10:00:00Z"
-  }
-]
+{
+  "pullRequests": [
+    {
+      "prId": "42",
+      "title": "Add feature X",
+      "authorArn": "arn:aws:iam::123456789012:user/example",
+      "sourceBranch": "feature/x",
+      "destinationBranch": "main",
+      "status": "OPEN",
+      "creationDate": "2026-04-01T10:00:00Z"
+    }
+  ]
+}
 ```
 
-The output is the same schema as `ccpr list --format json`; consumers must ignore unknown fields for forward compatibility.
+The MCP tool wraps the PR summary array in an object under `pullRequests` because MCP tool output schemas must be objects. Each element of `pullRequests` uses the same field names and types as `ccpr list --format json`. Consumers must ignore unknown fields for forward compatibility.
 
 ### Error Handling
 
