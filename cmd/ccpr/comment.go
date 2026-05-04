@@ -61,7 +61,7 @@ func runComment(args []string) error {
 		Config:  flagConfig,
 	}, newCodeCommitClient)
 	if err != nil {
-		return err
+		return translateAppError(err)
 	}
 
 	if flagFormat == "json" {

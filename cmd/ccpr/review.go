@@ -50,7 +50,7 @@ func runReview(args []string) error {
 		Config:  flagConfig,
 	}, newCodeCommitClient, defaultDiffGenerator)
 	if err != nil {
-		return err
+		return translateAppError(err)
 	}
 
 	switch flagFormat {

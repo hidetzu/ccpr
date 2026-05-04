@@ -54,7 +54,7 @@ func PostComment(
 		repo = opts.Repo
 		prID = opts.PRId
 	} else {
-		return PostedComment{}, fmt.Errorf("provide a PR URL or repo and prId")
+		return PostedComment{}, ErrMissingPRRef
 	}
 
 	cfg, _, err := config.Load(opts.Config)
@@ -66,7 +66,7 @@ func PostComment(
 		region = cfg.ResolveRegion(opts.Region)
 	}
 	if region == "" {
-		return PostedComment{}, fmt.Errorf("region is required: use region option, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
+		return PostedComment{}, ErrMissingRegion
 	}
 
 	profile := cfg.ResolveProfile(opts.Profile)

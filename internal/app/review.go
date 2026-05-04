@@ -51,7 +51,7 @@ func GetReview(
 		repo = opts.Repo
 		prID = opts.PRId
 	} else {
-		return ReviewPayload{}, fmt.Errorf("provide a PR URL or repo and prId")
+		return ReviewPayload{}, ErrMissingPRRef
 	}
 
 	cfg, _, err := config.Load(opts.Config)
@@ -63,7 +63,7 @@ func GetReview(
 		region = cfg.ResolveRegion(opts.Region)
 	}
 	if region == "" {
-		return ReviewPayload{}, fmt.Errorf("region is required: use region option, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
+		return ReviewPayload{}, ErrMissingRegion
 	}
 
 	repoPath, err := cfg.ResolveRepoPath(repo)

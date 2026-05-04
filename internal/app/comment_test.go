@@ -59,8 +59,8 @@ func TestPostCommentRequiresBody(t *testing.T) {
 
 func TestPostCommentRequiresURLOrRepoAndPRId(t *testing.T) {
 	_, err := PostComment(context.Background(), PostCommentOptions{Body: "hi"}, nil)
-	if err == nil || !strings.Contains(err.Error(), "URL or repo and prId") {
-		t.Fatalf("error = %v, want URL/repo guidance", err)
+	if !errors.Is(err, ErrMissingPRRef) {
+		t.Fatalf("error = %v, want ErrMissingPRRef", err)
 	}
 }
 
