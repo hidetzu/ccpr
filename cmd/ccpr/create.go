@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/hidetzu/ccpr/internal/app"
 	"github.com/hidetzu/ccpr/internal/config"
 )
 
@@ -45,7 +46,6 @@ func runCreate(args []string) error {
 		return err
 	}
 
-	// Validate required flags
 	if flagRepo == "" {
 		return fmt.Errorf("--repo is required")
 	}
@@ -56,68 +56,63 @@ func runCreate(args []string) error {
 		return fmt.Errorf("--dest is required")
 	}
 
-	// Validate format
 	switch flagFormat {
 	case "summary", "json":
 	default:
 		return fmt.Errorf("invalid format %q: must be summary or json", flagFormat)
 	}
 
-	// Resolve description
 	description, err := resolveDescription(flagDescription, flagDescriptionFile)
 	if err != nil {
 		return err
 	}
 
-	// Load config
-	cfg, _, err := config.Load(flagConfig)
+	source, err := resolveSourceBranch(flagSource, flagRepo, flagConfig)
 	if err != nil {
-		return fmt.Errorf("config: %w", err)
+		return err
 	}
 
-	region := cfg.ResolveRegion(flagRegion)
-	if region == "" {
-		return fmt.Errorf("region is required: use --region flag, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
-	}
-	profile := cfg.ResolveProfile(flagProfile)
-
-	// Resolve source branch
-	source := flagSource
-	if source == "" {
-		repoPath, err := cfg.ResolveRepoPath(flagRepo)
-		if err != nil {
-			return fmt.Errorf("resolving repo path: %w", err)
-		}
-		source, err = currentBranch(repoPath)
-		if err != nil {
-			return newSystemError("detecting current branch: %w", err)
-		}
-	}
-
-	if source == flagDest {
-		return fmt.Errorf("source branch %q is the same as destination branch", source)
-	}
-
-	// Create PR
-	ctx := context.Background()
-	cc, err := newCodeCommitClient(ctx, region, profile)
+	result, err := app.CreatePullRequest(context.Background(), app.CreatePullRequestOptions{
+		Repo:              flagRepo,
+		Title:             flagTitle,
+		SourceBranch:      source,
+		DestinationBranch: flagDest,
+		Description:       description,
+		Region:            flagRegion,
+		Profile:           flagProfile,
+		Config:            flagConfig,
+	}, newCodeCommitClient)
 	if err != nil {
-		return newSystemError("creating CodeCommit client: %w", err)
+		return err
 	}
 
-	result, err := cc.CreatePR(ctx, flagRepo, flagTitle, description, source, flagDest)
-	if err != nil {
-		return newSystemError("creating pull request: %w", err)
-	}
-
-	// Build console URL
-	consoleURL := buildConsoleURL(region, flagRepo, result.PRId)
-
-	// Output
 	if flagFormat == "json" {
-		return printCreateJSON(os.Stdout, result.PRId, result.Title, flagRepo, result.SourceBranch, result.DestinationBranch, consoleURL)
+		return printCreateJSON(os.Stdout, result.PRId, result.Title, result.Repository, result.SourceBranch, result.DestinationBranch, result.URL)
 	}
-	return printCreateSummary(os.Stdout, result.PRId, result.Title, flagRepo, result.SourceBranch, result.DestinationBranch, consoleURL)
+	return printCreateSummary(os.Stdout, result.PRId, result.Title, result.Repository, result.SourceBranch, result.DestinationBranch, result.URL)
+}
+
+// resolveSourceBranch returns the explicit --source value if set, otherwise
+// detects the current branch via local Git in the configured repo path.
+// This default-from-Git behavior is CLI-only; the MCP path requires source
+// to be passed explicitly.
+func resolveSourceBranch(flagSource, repo, configPath string) (string, error) {
+	if flagSource != "" {
+		return flagSource, nil
+	}
+	cfg, _, err := config.Load(configPath)
+	if err != nil {
+		return "", fmt.Errorf("config: %w", err)
+	}
+	repoPath, err := cfg.ResolveRepoPath(repo)
+	if err != nil {
+		return "", fmt.Errorf("resolving repo path: %w", err)
+	}
+	source, err := currentBranch(repoPath)
+	if err != nil {
+		return "", newSystemError("detecting current branch: %w", err)
+	}
+	return source, nil
 }
 
 func resolveDescription(flagDesc, flagDescFile string) (string, error) {
@@ -155,10 +150,6 @@ func currentBranch(repoPath string) (string, error) {
 		return "", fmt.Errorf("git rev-parse: %w", err)
 	}
 	return strings.TrimSpace(string(out)), nil
-}
-
-func buildConsoleURL(region, repo, prID string) string {
-	return fmt.Sprintf("https://%s.console.aws.amazon.com/codesuite/codecommit/repositories/%s/pull-requests/%s", region, repo, prID)
 }
 
 type createJSONOutput struct {

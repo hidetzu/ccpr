@@ -114,6 +114,7 @@ ccpr also provides an experimental MCP server binary for Claude Code and other M
 ccpr_list      List PRs for a repository                     (read-only)
 ccpr_review    Fetch PR metadata, comments, and diff         (read-only)
 ccpr_comment   Post a comment to a PR                        (write-side)
+ccpr_create    Create a PR                                   (write-side)
 ```
 
 Build it locally:
@@ -133,6 +134,7 @@ Then ask Claude Code to list or review CodeCommit PRs:
 - `ccpr_list` accepts `repo`, `status`, `region`, `profile`, and `config`, and returns the same PR summary schema as `ccpr list --format json` (wrapped under `pullRequests`).
 - `ccpr_review` accepts either `url` or `repo` + `prId`, plus optional `region`, `profile`, and `config`, and returns the same `{metadata, comments, diff}` payload as `ccpr review --format json`.
 - `ccpr_comment` accepts `body` and either `url` or `repo` + `prId`, plus optional `region`, `profile`, and `config`, and returns the same `{commentId, pullRequestId, authorArn, creationDate}` payload as `ccpr comment --format json`. **Write-side**: each successful call posts a real comment to CodeCommit, so MCP hosts should prompt before invocation.
+- `ccpr_create` accepts `repo`, `title`, `sourceBranch`, `destinationBranch`, plus optional `description`, `region`, `profile`, and `config`, and returns the same `{prId, title, repository, sourceBranch, destinationBranch, url}` payload as `ccpr create --format json`. **Write-side**: each successful call creates a real PR in CodeCommit, so MCP hosts should prompt before invocation. Unlike the CLI, `sourceBranch` is required — MCP has no implicit working-directory context for auto-detecting the current branch.
 
 ---
 

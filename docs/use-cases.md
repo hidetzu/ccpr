@@ -227,3 +227,26 @@
 - Note:
   - This is the first write-side MCP tool. Each successful call produces a real comment in CodeCommit; the tool description and README must make this explicit so the MCP host's per-call approval gate is meaningful.
   - `--body-file` and stdin (`-`) input forms remain CLI-only — MCP callers pass the comment body as a string argument.
+
+## UC-14 Create a PR via MCP
+
+- Actor: Developer using Claude Code or another MCP client
+- Trigger: Developer wants the AI assistant to open a CodeCommit PR after assembling title, description, and branches without dropping to the shell
+- Precondition: `ccpr-mcp` is built and registered with the MCP client, AWS credentials are configured, region/profile are resolvable, both source and destination branches exist on the remote, and the MCP host is configured to prompt before invoking write-side tools
+- Main flow:
+  1. Developer instructs the MCP client to open a PR with a specific title, source branch, destination branch, and optional description
+  2. The client invokes the `ccpr_create` MCP tool with `repo`, `title`, `sourceBranch`, `destinationBranch`, and optional `description`, `region`, `profile`, `config`
+  3. The MCP host prompts the user to approve the call (write-side)
+  4. `ccpr-mcp` resolves config, AWS profile, and AWS region using the same rules as `ccpr create`
+  5. `ccpr-mcp` calls CodeCommit `CreatePullRequest` through the shared create use case
+  6. `ccpr-mcp` returns the same `{prId, title, repository, sourceBranch, destinationBranch, url}` object as `ccpr create --format json`
+- Success:
+  - The PR is created and Claude Code receives the resulting PR metadata, including the console URL it can hand back to the developer
+- Failure:
+  - Missing any of `repo`, `title`, `sourceBranch`, or `destinationBranch` → tool call returns a validation error
+  - `sourceBranch` equal to `destinationBranch` → tool call returns a validation error
+  - Missing region, invalid AWS credentials, or `CreatePullRequest` failure → tool call returns the same guidance as the CLI path
+- Note:
+  - The CLI's "default source branch to the current local Git branch" behavior is **not** carried over to MCP — the MCP server has no implicit working-directory context, so callers must pass `sourceBranch` explicitly.
+  - `--description-file` and stdin (`-`) input forms remain CLI-only — MCP callers pass the description as a string argument.
+  - Each successful call creates a real PR in CodeCommit; the tool description and README must make this explicit so the MCP host's per-call approval gate is meaningful.

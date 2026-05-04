@@ -146,6 +146,8 @@ Result of creating a pull request.
 | `destinationBranch` | string | yes | Destination branch name |
 | `url` | string | yes | CodeCommit console URL |
 
+The MCP tool `ccpr_create` returns this same object directly; no wrapper is added because the payload is already an object.
+
 ---
 
 ## Error Output
