@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hidetzu/ccpr/internal/config"
+	"github.com/hidetzu/ccpr/internal/app"
 	"github.com/hidetzu/ccpr/internal/output"
 )
+
+type listJSONItem = app.ListPullRequest
 
 func runList(args []string) error {
 	fs := flag.NewFlagSet("list", flag.ContinueOnError)
@@ -44,45 +46,21 @@ func runList(args []string) error {
 		return fmt.Errorf("--repo is required for list command")
 	}
 
-	cfg, _, err := config.Load(flagConfig)
+	prs, err := app.ListPullRequests(context.Background(), app.ListPullRequestsOptions{
+		Repo:    flagRepo,
+		Status:  flagStatus,
+		Config:  flagConfig,
+		Profile: flagProfile,
+		Region:  flagRegion,
+	}, newCodeCommitClient)
 	if err != nil {
-		return fmt.Errorf("config: %w", err)
-	}
-
-	profile := cfg.ResolveProfile(flagProfile)
-
-	region := cfg.ResolveRegion(flagRegion)
-	if region == "" {
-		return fmt.Errorf("region is required: use --region flag, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
-	}
-
-	ctx := context.Background()
-	cc, err := newCodeCommitClient(ctx, region, profile)
-	if err != nil {
-		return fmt.Errorf("creating CodeCommit client: %w", err)
-	}
-
-	prs, err := cc.ListPRs(ctx, flagRepo, flagStatus)
-	if err != nil {
-		return fmt.Errorf("listing PRs: %w", err)
+		return err
 	}
 
 	if flagFormat == "json" {
-		items := make([]listJSONItem, len(prs))
-		for i, pr := range prs {
-			items[i] = listJSONItem{
-				PRId:              pr.PRId,
-				Title:             pr.Title,
-				AuthorARN:         pr.AuthorARN,
-				SourceBranch:      pr.SourceBranch,
-				DestinationBranch: pr.DestinationBranch,
-				Status:            pr.Status,
-				CreationDate:      pr.CreationDate.Format("2006-01-02T15:04:05Z07:00"),
-			}
-		}
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
-		return enc.Encode(items)
+		return enc.Encode(prs)
 	}
 
 	if len(prs) == 0 {
@@ -99,21 +77,11 @@ func runList(args []string) error {
 			pr.SourceBranch,
 			pr.DestinationBranch,
 			pr.Status,
-			pr.CreationDate.Format("2006-01-02"),
+			formatListDate(pr.CreationDate),
 		)
 	}
 
 	return nil
-}
-
-type listJSONItem struct {
-	PRId              string `json:"prId"`
-	Title             string `json:"title"`
-	AuthorARN         string `json:"authorArn"`
-	SourceBranch      string `json:"sourceBranch"`
-	DestinationBranch string `json:"destinationBranch"`
-	Status            string `json:"status"`
-	CreationDate      string `json:"creationDate"`
 }
 
 func truncate(s string, max int) string {
@@ -121,4 +89,11 @@ func truncate(s string, max int) string {
 		return s
 	}
 	return s[:max-3] + "..."
+}
+
+func formatListDate(s string) string {
+	if len(s) >= len("2006-01-02") {
+		return s[:len("2006-01-02")]
+	}
+	return s
 }

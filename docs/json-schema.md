@@ -92,6 +92,8 @@ Array of PR summary objects.
 
 Empty result: `[]`
 
+The MCP tool `ccpr_list` returns the same PR summary object array.
+
 ---
 
 ### `comment --format json`

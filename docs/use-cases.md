@@ -168,3 +168,22 @@
 - Failure:
   - Missing region → error with guidance
   - Browser cannot be opened → prints URL to stdout as fallback
+
+## UC-11 List PRs via MCP
+
+- Actor: Developer using Claude Code or another MCP client
+- Trigger: Developer wants the AI assistant to inspect available CodeCommit PRs without manually running `ccpr list`
+- Precondition: `ccpr-mcp` is built and registered with the MCP client, AWS credentials are configured, config file exists with region/profile as needed
+- Main flow:
+  1. Developer asks the MCP client to list pull requests for a repository
+  2. The client invokes the `ccpr_list` MCP tool with `repo` and optional `status`, `region`, `profile`, `config`
+  3. `ccpr-mcp` resolves config, AWS profile, and AWS region using the same rules as `ccpr list`
+  4. `ccpr-mcp` calls CodeCommit through the shared list use case
+  5. `ccpr-mcp` returns the same PR summary objects as `ccpr list --format json`
+- Success:
+  - Claude Code can retrieve the PR list directly as a tool result and use it in the review workflow
+- Failure:
+  - Missing repo → tool call returns a validation error
+  - Missing region or invalid AWS credentials → tool call returns the same guidance as the CLI path
+- Note:
+  - This first MCP integration is read-only. MCP tools for review/create/comment/open are out of scope for this use case.

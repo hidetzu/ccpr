@@ -7,11 +7,13 @@ ccpr/
 ├── cmd/            # CLI entrypoint and command definitions
 ├── internal/
 │   ├── parser/     # PR URL parsing (FR-01)
+│   ├── app/        # Shared use cases for CLI and MCP
 │   ├── codecommit/ # AWS CodeCommit client (FR-02, FR-03)
 │   ├── diff/       # Local Git diff generation (FR-04)
 │   ├── config/     # Configuration loading, repo mapping (FR-07)
 │   └── output/     # JSON/patch formatting (FR-05, FR-06)
-└── main.go
+├── cmd/ccpr/       # Human-facing CLI
+└── cmd/ccpr-mcp/   # MCP server over stdio
 ```
 
 ## Key Interfaces
@@ -139,6 +141,111 @@ Flags:
 `--format` accepts one of: `summary` (default), `json`, `patch`.
 
 Invalid values cause the CLI to exit with code 1 and print an error to stderr.
+
+## Shared List Use Case
+
+`ccpr list` and the `ccpr_list` MCP tool both call the same internal use case.
+
+```go
+type ListPullRequestsOptions struct {
+    Repo    string
+    Status  string
+    Config  string
+    Profile string
+    Region  string
+}
+
+type ListPullRequest struct {
+    PRId              string `json:"prId"`
+    Title             string `json:"title"`
+    AuthorARN         string `json:"authorArn"`
+    SourceBranch      string `json:"sourceBranch"`
+    DestinationBranch string `json:"destinationBranch"`
+    Status            string `json:"status"`
+    CreationDate      string `json:"creationDate"`
+}
+```
+
+Behavior:
+1. Validate `repo` and `status`
+2. Load config
+3. Resolve profile and region using the standard priority rules
+4. Create a CodeCommit client
+5. Call `ListPRs`
+6. Return `[]ListPullRequest`
+
+This keeps the CLI summary/JSON rendering and the MCP tool response backed by the same data retrieval path.
+
+## MCP Server (FR-18)
+
+### Binary
+
+```
+ccpr-mcp
+```
+
+Source location:
+
+```
+cmd/ccpr-mcp/
+```
+
+The MCP server is a separate binary from `ccpr` and communicates over stdio.
+
+### Tool: `ccpr_list`
+
+Lists CodeCommit pull requests for a repository.
+
+Input schema:
+
+```json
+{
+  "repo": "my-repo",
+  "status": "open",
+  "config": "/path/to/config.yaml",
+  "profile": "my-profile",
+  "region": "ap-northeast-1"
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `repo` | string | yes | | CodeCommit repository name |
+| `status` | string | no | `open` | PR status filter: `open`, `closed`, or `all` |
+| `config` | string | no | | Path to ccpr config file |
+| `profile` | string | no | | AWS profile override |
+| `region` | string | no | | AWS region override |
+
+Output schema:
+
+```json
+[
+  {
+    "prId": "42",
+    "title": "Add feature X",
+    "authorArn": "arn:aws:iam::123456789012:user/example",
+    "sourceBranch": "feature/x",
+    "destinationBranch": "main",
+    "status": "OPEN",
+    "creationDate": "2026-04-01T10:00:00Z"
+  }
+]
+```
+
+The output is the same schema as `ccpr list --format json`; consumers must ignore unknown fields for forward compatibility.
+
+### Error Handling
+
+MCP tool errors are returned as tool call errors. Error messages follow the same validation and AWS/config guidance as the shared list use case:
+
+- missing `repo`
+- invalid `status`
+- config load failure
+- missing region
+- CodeCommit client creation failure
+- CodeCommit list failure
+
+Structured MCP-specific error codes are out of scope for the first MCP release.
 
 ## Diff Strategy
 
@@ -433,6 +540,7 @@ https://<region>.console.aws.amazon.com/codesuite/codecommit/repositories/<repo>
 ## Dependencies
 
 - `aws-sdk-go-v2` — CodeCommit API calls
+- `modelcontextprotocol/go-sdk` — MCP server and stdio transport
 - `os/exec` — local Git invocation for diff
 - `gopkg.in/yaml.v3` — configuration file parsing
 - Standard library for JSON, I/O, flag parsing

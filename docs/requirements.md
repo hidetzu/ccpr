@@ -214,6 +214,31 @@ repoMappings:
 
 ---
 
+### FR-18 MCP Server
+
+- Provide a separate MCP server binary at `cmd/ccpr-mcp`
+- The MCP server must not change the existing `ccpr` CLI behavior or JSON output
+- Transport: stdio
+- Exposed tools for the first MCP release:
+  - `ccpr_list` only
+- `ccpr_list` input mirrors `ccpr list` flags where applicable:
+  - `repo` (required)
+  - `status` (optional, default `open`; accepted values: `open`, `closed`, `all`)
+  - `config` (optional)
+  - `profile` (optional)
+  - `region` (optional)
+- `ccpr_list` output must reuse the existing `ccpr list --format json` PR summary schema
+- AWS profile resolution follows FR-09
+- AWS region resolution follows FR-17
+- The implementation must share the internal list use case with the CLI so the CLI and MCP paths do not diverge
+
+Constraints:
+- No write-side MCP tools in this feature
+- No new authentication or permission model in this feature
+- MCP versions of review, create, comment, open, and doctor are out of scope
+
+---
+
 ## Non-Functional Requirements
 
 ### NFR-01 CLI Behavior
