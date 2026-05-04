@@ -67,11 +67,8 @@ func (f *fakeDiffGen) GenerateDiff(repoPath, sourceBranch, destBranch string) (s
 
 func TestGetReviewRequiresURLOrRepoAndPRId(t *testing.T) {
 	_, err := GetReview(context.Background(), GetReviewOptions{}, nil, nil)
-	if err == nil {
-		t.Fatal("GetReview returned nil error")
-	}
-	if !strings.Contains(err.Error(), "URL or repo and prId") {
-		t.Fatalf("error = %q, want URL/repo guidance", err.Error())
+	if !errors.Is(err, ErrMissingPRRef) {
+		t.Fatalf("error = %v, want ErrMissingPRRef", err)
 	}
 }
 

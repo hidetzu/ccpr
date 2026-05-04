@@ -54,7 +54,7 @@ func runList(args []string) error {
 		Region:  flagRegion,
 	}, newCodeCommitClient)
 	if err != nil {
-		return err
+		return translateAppError(err)
 	}
 
 	if flagFormat == "json" {

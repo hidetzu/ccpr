@@ -34,7 +34,7 @@ type ListPullRequest struct {
 // ListPullRequests returns pull request summaries for a repository.
 func ListPullRequests(ctx context.Context, opts ListPullRequestsOptions, newClient CodeCommitClientFactory) ([]ListPullRequest, error) {
 	if opts.Repo == "" {
-		return nil, fmt.Errorf("--repo is required for list command")
+		return nil, fmt.Errorf("repo is required")
 	}
 
 	status := opts.Status
@@ -55,7 +55,7 @@ func ListPullRequests(ctx context.Context, opts ListPullRequestsOptions, newClie
 	profile := cfg.ResolveProfile(opts.Profile)
 	region := cfg.ResolveRegion(opts.Region)
 	if region == "" {
-		return nil, fmt.Errorf("region is required: use --region flag, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
+		return nil, ErrMissingRegion
 	}
 
 	cc, err := newClient(ctx, region, profile)
