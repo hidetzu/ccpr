@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hidetzu/ccpr/internal/app"
 )
 
 func TestResolveDescription_Inline(t *testing.T) {
@@ -118,7 +120,7 @@ func TestRunCreate_MissingRegion(t *testing.T) {
 }
 
 func TestBuildConsoleURL(t *testing.T) {
-	url := buildConsoleURL("ap-northeast-1", "my-repo", "42")
+	url := app.BuildConsoleURL("ap-northeast-1", "my-repo", "42")
 	want := "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/42"
 	if url != want {
 		t.Errorf("url = %q, want %q", url, want)

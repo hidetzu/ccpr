@@ -43,6 +43,17 @@ type commentInput struct {
 	Config  string `json:"config,omitempty" jsonschema:"Path to ccpr configuration file"`
 }
 
+type createInput struct {
+	Repo              string `json:"repo" jsonschema:"CodeCommit repository name"`
+	Title             string `json:"title" jsonschema:"Pull request title"`
+	SourceBranch      string `json:"sourceBranch" jsonschema:"Source branch (the branch being merged from). MCP does not auto-detect a current branch."`
+	DestinationBranch string `json:"destinationBranch" jsonschema:"Destination branch (the branch being merged into)"`
+	Description       string `json:"description,omitempty" jsonschema:"Pull request description"`
+	Region            string `json:"region,omitempty" jsonschema:"AWS region override"`
+	Profile           string `json:"profile,omitempty" jsonschema:"AWS profile name"`
+	Config            string `json:"config,omitempty" jsonschema:"Path to ccpr configuration file"`
+}
+
 func main() {
 	server := newServer()
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
@@ -70,6 +81,11 @@ func newServer() *mcp.Server {
 		Name:        "ccpr_comment",
 		Description: "Post a comment to a CodeCommit pull request. WRITE-SIDE: each successful call creates a real comment, so the host should prompt the user before invocation.",
 	}, postPullRequestComment)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "ccpr_create",
+		Description: "Create a CodeCommit pull request. WRITE-SIDE: each successful call creates a real PR, so the host should prompt the user before invocation. Unlike the CLI, sourceBranch is required (no implicit current-branch detection).",
+	}, createPullRequest)
 
 	return server
 }
@@ -117,6 +133,23 @@ func postPullRequestComment(ctx context.Context, _ *mcp.CallToolRequest, input c
 		return nil, app.PostedComment{}, err
 	}
 	return nil, posted, nil
+}
+
+func createPullRequest(ctx context.Context, _ *mcp.CallToolRequest, input createInput) (*mcp.CallToolResult, app.CreatedPullRequest, error) {
+	created, err := app.CreatePullRequest(ctx, app.CreatePullRequestOptions{
+		Repo:              input.Repo,
+		Title:             input.Title,
+		SourceBranch:      input.SourceBranch,
+		DestinationBranch: input.DestinationBranch,
+		Description:       input.Description,
+		Region:            input.Region,
+		Profile:           input.Profile,
+		Config:            input.Config,
+	}, newCodeCommitClient)
+	if err != nil {
+		return nil, app.CreatedPullRequest{}, err
+	}
+	return nil, created, nil
 }
 
 func newCodeCommitClient(ctx context.Context, region, profile string) (codecommit.Client, error) {

@@ -244,6 +244,44 @@ Behavior:
 
 This keeps the CLI summary/JSON rendering and the MCP tool response backed by the same write path.
 
+### Create
+
+`ccpr create` and the `ccpr_create` MCP tool both call the same internal use case.
+
+```go
+type CreatePullRequestOptions struct {
+    Repo              string
+    Title             string
+    SourceBranch      string
+    DestinationBranch string
+    Description       string
+    Region            string
+    Profile           string
+    Config            string
+}
+
+type CreatedPullRequest struct {
+    PRId              string `json:"prId"`
+    Title             string `json:"title"`
+    Repository        string `json:"repository"`
+    SourceBranch      string `json:"sourceBranch"`
+    DestinationBranch string `json:"destinationBranch"`
+    URL               string `json:"url"`
+}
+```
+
+Behavior:
+1. Validate `Repo`, `Title`, `SourceBranch`, and `DestinationBranch` are non-empty
+2. Reject requests where `SourceBranch == DestinationBranch`
+3. Load config
+4. Resolve profile and region using the standard priority rules
+5. Create a CodeCommit client
+6. Call `CreatePR(repo, title, description, source, dest)`
+7. Build the CodeCommit console URL from the resolved region, repo, and the new PR ID
+8. Return a `CreatedPullRequest` with all six output fields
+
+The CLI's "default `SourceBranch` to the local repo's current Git branch when empty" behavior is **not** part of this shared use case. The CLI resolves the default before calling, and falls back to `git rev-parse --abbrev-ref HEAD` only on the CLI side. The MCP path requires `SourceBranch` to be passed explicitly.
+
 ## MCP Server (FR-18)
 
 ### Binary
@@ -401,6 +439,55 @@ The output is the same schema as `ccpr comment --format json` (already an object
 
 The MCP tool only exposes this structured shape. The CLI's `summary` format, `--body-file` flag, and stdin (`-`) input form remain CLI-only.
 
+### Tool: `ccpr_create`
+
+Creates a CodeCommit pull request. **Write-side**: each successful call creates a real PR in CodeCommit, so MCP hosts should prompt users before invocation.
+
+Input schema:
+
+```json
+{
+  "repo": "my-repo",
+  "title": "Add feature X",
+  "sourceBranch": "feature/x",
+  "destinationBranch": "main",
+  "description": "Adds feature X for ...",
+  "region": "ap-northeast-1",
+  "profile": "my-profile",
+  "config": "/path/to/config.yaml"
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `repo` | string | yes | | CodeCommit repository name |
+| `title` | string | yes | | Pull request title |
+| `sourceBranch` | string | yes | | Source branch (branch being merged from). MCP does not auto-detect a "current" branch |
+| `destinationBranch` | string | yes | | Destination branch (branch being merged into) |
+| `description` | string | no | | Pull request description |
+| `region` | string | no | | AWS region override |
+| `profile` | string | no | | AWS profile override |
+| `config` | string | no | | Path to ccpr config file |
+
+`sourceBranch` must differ from `destinationBranch`.
+
+Output schema:
+
+```json
+{
+  "prId": "42",
+  "title": "Add feature X",
+  "repository": "my-repo",
+  "sourceBranch": "feature/x",
+  "destinationBranch": "main",
+  "url": "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/42"
+}
+```
+
+The output is the same schema as `ccpr create --format json` (already an object, so no wrapper is needed).
+
+The MCP tool only exposes this structured shape. The CLI's `summary` format, `--description-file` flag, stdin (`-`) input form, and the implicit "current branch" default for `--source` remain CLI-only.
+
 ### Error Handling
 
 MCP tool errors are returned as tool call errors. Error messages follow the same validation and AWS/config guidance as the shared use cases.
@@ -424,6 +511,15 @@ MCP tool errors are returned as tool call errors. Error messages follow the same
 - CodeCommit client creation failure
 - PR metadata or comment fetch failure
 - local Git diff generation failure
+
+`ccpr_create`:
+
+- missing any of `repo`, `title`, `sourceBranch`, `destinationBranch`
+- `sourceBranch == destinationBranch`
+- config load failure
+- missing region
+- CodeCommit client creation failure
+- `CreatePullRequest` failure
 
 `ccpr_comment`:
 

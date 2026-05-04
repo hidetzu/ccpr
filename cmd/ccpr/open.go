@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 
+	"github.com/hidetzu/ccpr/internal/app"
 	"github.com/hidetzu/ccpr/internal/config"
 	"github.com/hidetzu/ccpr/internal/parser"
 )
@@ -61,7 +62,7 @@ func runOpen(args []string) error {
 		return fmt.Errorf("region is required: use --region flag, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
 	}
 
-	openURL := buildConsoleURL(region, repo, prID)
+	openURL := app.BuildConsoleURL(region, repo, prID)
 
 	return openBrowser(openURL)
 }

@@ -223,6 +223,7 @@ repoMappings:
   - `ccpr_list` — list pull requests (read-only)
   - `ccpr_review` — fetch a PR's metadata, comments, and diff (read-only)
   - `ccpr_comment` — post a comment to a pull request (write-side)
+  - `ccpr_create` — create a pull request (write-side)
 - `ccpr_list` input mirrors `ccpr list` flags where applicable:
   - `repo` (required)
   - `status` (optional, default `open`; accepted values: `open`, `closed`, `all`)
@@ -250,14 +251,26 @@ repoMappings:
   - At least one of (`url`) or (`repo` and `prId`) must be provided
 - `ccpr_comment` output must reuse the existing `ccpr comment --format json` schema (`{commentId, pullRequestId, authorArn, creationDate}`); no wrapper is needed because the payload is already an object
 - `ccpr_comment` is write-side: each successful call posts a real comment to CodeCommit. The tool description and README must call this out so MCP hosts can prompt users before invocation
-- The MCP server exposes only the structured (JSON-equivalent) output. `summary`, `patch`, `--body-file`, and stdin (`-`) input forms remain CLI-only
+- `ccpr_create` input mirrors `ccpr create` parameters with one intentional difference:
+  - `repo` (required)
+  - `title` (required)
+  - `sourceBranch` (required) — MCP does not auto-detect a "current" Git branch. CLI behavior of falling back to the local repo's current branch when `--source` is empty is **not** carried over
+  - `destinationBranch` (required)
+  - `description` (optional)
+  - `region` (optional)
+  - `profile` (optional)
+  - `config` (optional)
+- `ccpr_create` output must reuse the existing `ccpr create --format json` schema (`{prId, title, repository, sourceBranch, destinationBranch, url}`); no wrapper is needed because the payload is already an object
+- `ccpr_create` is write-side: each successful call creates a real PR in CodeCommit. The tool description and README must call this out so MCP hosts can prompt users before invocation
+- `ccpr_create` rejects requests where `sourceBranch == destinationBranch` (matches the CLI guard)
+- The MCP server exposes only the structured (JSON-equivalent) output. `summary`, `patch`, `--body-file`, `--description-file`, and stdin (`-`) input forms remain CLI-only
 - AWS profile resolution follows FR-09
 - AWS region resolution follows FR-17, with the following tool-specific exception: when `ccpr_review` or `ccpr_comment` is invoked with a `url`, the region embedded in the URL takes priority over `region`/config/env (matching the corresponding CLI behavior). Otherwise FR-17 applies as-is
 - The implementation must share the internal use cases with the CLI so the CLI and MCP paths do not diverge
 
 Constraints:
 - No new authentication or permission model — write-side MCP tools rely on the MCP host's per-call approval gate plus the same AWS profile resolution as the CLI
-- MCP versions of `create`, `open`, and `doctor` are out of scope for this feature
+- MCP versions of `open` and `doctor` are out of scope. `ccpr_open` is intentionally not provided — MCP hosts do not own a browser, and PR URLs are already returned by `ccpr_list` / `ccpr_review` / `ccpr_create`. `ccpr_doctor` may be revisited later if there is demand
 
 ---
 
