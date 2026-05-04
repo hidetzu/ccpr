@@ -107,11 +107,12 @@ cp /path/to/ccpr/examples/claude/ccpr-review/SKILL.md .claude/skills/ccpr-review
 
 ### MCPサーバー
 
-ccpr は Claude Code などのMCPクライアント向けに、実験的なMCPサーバーバイナリも提供します。現在公開しているtool（いずれも読み取り専用）:
+ccpr は Claude Code などのMCPクライアント向けに、実験的なMCPサーバーバイナリも提供します。現在公開しているtool:
 
 ```text
-ccpr_list      リポジトリのPR一覧を取得
-ccpr_review    指定PRのメタデータ・コメント・diffをまとめて取得
+ccpr_list      リポジトリのPR一覧を取得          (読み取り)
+ccpr_review    指定PRのメタデータ・コメント・diffをまとめて取得  (読み取り)
+ccpr_comment   PRにコメントを投稿                (書き込み)
 ```
 
 ローカルでビルドします。
@@ -130,6 +131,7 @@ claude mcp add ccpr -- /path/to/ccpr/bin/ccpr-mcp
 
 - `ccpr_list` は `repo`, `status`, `region`, `profile`, `config` を受け取り、`ccpr list --format json` と同じPRサマリースキーマを `pullRequests` キー配下で返します。
 - `ccpr_review` は `url` または `repo` + `prId` のいずれかと、任意の `region`, `profile`, `config` を受け取り、`ccpr review --format json` と同じ `{metadata, comments, diff}` を返します。
+- `ccpr_comment` は `body` と、`url` または `repo` + `prId`、任意の `region`, `profile`, `config` を受け取り、`ccpr comment --format json` と同じ `{commentId, pullRequestId, authorArn, creationDate}` を返します。**書き込み系**のため、呼び出すたびにCodeCommitへ実際にコメントが投稿されます。MCPホスト側の承認プロンプトで明示的に許可してください。
 
 ---
 

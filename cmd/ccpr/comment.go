@@ -8,9 +8,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/hidetzu/ccpr/internal/config"
+	"github.com/hidetzu/ccpr/internal/app"
 	"github.com/hidetzu/ccpr/internal/output"
-	"github.com/hidetzu/ccpr/internal/parser"
 )
 
 func runComment(args []string) error {
@@ -41,75 +40,34 @@ func runComment(args []string) error {
 		return err
 	}
 
-	// Validate format
 	switch flagFormat {
 	case "summary", "json":
 	default:
 		return fmt.Errorf("invalid format %q: must be summary or json", flagFormat)
 	}
 
-	// Resolve body
 	body, err := resolveBody(flagBody, flagBodyFile)
 	if err != nil {
 		return err
 	}
 
-	// Resolve PR parameters
-	var region, repo, prID string
-
-	if url := fs.Arg(0); url != "" {
-		result, err := parser.Parse(url)
-		if err != nil {
-			return fmt.Errorf("invalid PR URL: %w", err)
-		}
-		region = result.Region
-		repo = result.Repository
-		prID = result.PRId
-	} else if flagRepo != "" && flagPRId != "" {
-		repo = flagRepo
-		prID = flagPRId
-	} else {
-		return fmt.Errorf("provide a PR URL or --repo and --pr-id flags")
-	}
-
-	// Load config
-	cfg, _, err := config.Load(flagConfig)
+	result, err := app.PostComment(context.Background(), app.PostCommentOptions{
+		URL:     fs.Arg(0),
+		Repo:    flagRepo,
+		PRId:    flagPRId,
+		Body:    body,
+		Region:  flagRegion,
+		Profile: flagProfile,
+		Config:  flagConfig,
+	}, newCodeCommitClient)
 	if err != nil {
-		return fmt.Errorf("config: %w", err)
+		return err
 	}
 
-	if region == "" {
-		region = cfg.ResolveRegion(flagRegion)
-	}
-	if region == "" {
-		return fmt.Errorf("region is required: use --region flag, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
-	}
-	profile := cfg.ResolveProfile(flagProfile)
-
-	// Get PR metadata for commit IDs
-	ctx := context.Background()
-	cc, err := newCodeCommitClient(ctx, region, profile)
-	if err != nil {
-		return newSystemError("creating CodeCommit client: %w", err)
-	}
-
-	metadata, err := cc.GetPRMetadata(ctx, repo, prID)
-	if err != nil {
-		return newSystemError("fetching PR metadata: %w", err)
-	}
-
-	// Post comment
-	result, err := cc.PostComment(ctx, repo, prID, metadata.DestinationCommit, metadata.SourceCommit, body)
-	if err != nil {
-		return newSystemError("posting comment: %w", err)
-	}
-
-	// Output
-	creationDate := result.CreationDate.Format("2006-01-02T15:04:05Z07:00")
 	if flagFormat == "json" {
-		return printCommentJSON(os.Stdout, prID, result.CommentID, result.AuthorARN, creationDate)
+		return printCommentJSON(os.Stdout, result)
 	}
-	return printCommentSummary(os.Stdout, prID, result.CommentID, output.ShortAuthor(result.AuthorARN), creationDate)
+	return printCommentSummary(os.Stdout, result.PullRequestID, result.CommentID, output.ShortAuthor(result.AuthorARN), result.CreationDate)
 }
 
 func resolveBody(flagBody, flagBodyFile string) (string, error) {
@@ -140,23 +98,10 @@ func resolveBody(flagBody, flagBodyFile string) (string, error) {
 	return "", fmt.Errorf("provide comment body via --body or --body-file")
 }
 
-type commentJSONOutput struct {
-	CommentID     string `json:"commentId"`
-	PullRequestID string `json:"pullRequestId"`
-	AuthorARN     string `json:"authorArn"`
-	CreationDate  string `json:"creationDate"`
-}
-
-func printCommentJSON(w io.Writer, prID string, commentID, authorARN string, creationDate string) error {
-	out := commentJSONOutput{
-		CommentID:     commentID,
-		PullRequestID: prID,
-		AuthorARN:     authorARN,
-		CreationDate:  creationDate,
-	}
+func printCommentJSON(w io.Writer, result app.PostedComment) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
-	return enc.Encode(out)
+	return enc.Encode(result)
 }
 
 func printCommentSummary(w io.Writer, prID, commentID, author, creationDate string) error {

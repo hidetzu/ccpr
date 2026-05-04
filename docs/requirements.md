@@ -222,6 +222,7 @@ repoMappings:
 - Exposed tools:
   - `ccpr_list` — list pull requests (read-only)
   - `ccpr_review` — fetch a PR's metadata, comments, and diff (read-only)
+  - `ccpr_comment` — post a comment to a pull request (write-side)
 - `ccpr_list` input mirrors `ccpr list` flags where applicable:
   - `repo` (required)
   - `status` (optional, default `open`; accepted values: `open`, `closed`, `all`)
@@ -238,15 +239,25 @@ repoMappings:
   - `config` (optional)
   - At least one of (`url`) or (`repo` and `prId`) must be provided
 - `ccpr_review` output must reuse the existing `ccpr review --format json` schema (`{metadata, comments, diff}`); no wrapper is needed because the payload is already an object
-- The MCP server exposes only the structured (JSON-equivalent) output. `summary` and `patch` formats remain CLI-only
+- `ccpr_comment` input mirrors `ccpr comment` parameters:
+  - `url` (optional) — full CodeCommit PR URL; takes priority when present
+  - `repo` (optional) — required when `url` is not provided
+  - `prId` (optional) — required when `url` is not provided
+  - `body` (required) — comment body
+  - `region` (optional)
+  - `profile` (optional)
+  - `config` (optional)
+  - At least one of (`url`) or (`repo` and `prId`) must be provided
+- `ccpr_comment` output must reuse the existing `ccpr comment --format json` schema (`{commentId, pullRequestId, authorArn, creationDate}`); no wrapper is needed because the payload is already an object
+- `ccpr_comment` is write-side: each successful call posts a real comment to CodeCommit. The tool description and README must call this out so MCP hosts can prompt users before invocation
+- The MCP server exposes only the structured (JSON-equivalent) output. `summary`, `patch`, `--body-file`, and stdin (`-`) input forms remain CLI-only
 - AWS profile resolution follows FR-09
-- AWS region resolution follows FR-17, with one tool-specific exception: when `ccpr_review` is invoked with a `url`, the region embedded in the URL takes priority over `region`/config/env (matching `ccpr review` CLI behavior). Otherwise FR-17 applies as-is
+- AWS region resolution follows FR-17, with the following tool-specific exception: when `ccpr_review` or `ccpr_comment` is invoked with a `url`, the region embedded in the URL takes priority over `region`/config/env (matching the corresponding CLI behavior). Otherwise FR-17 applies as-is
 - The implementation must share the internal use cases with the CLI so the CLI and MCP paths do not diverge
 
 Constraints:
-- No write-side MCP tools in this feature
-- No new authentication or permission model in this feature
-- MCP versions of create, comment, open, and doctor are out of scope
+- No new authentication or permission model — write-side MCP tools rely on the MCP host's per-call approval gate plus the same AWS profile resolution as the CLI
+- MCP versions of `create`, `open`, and `doctor` are out of scope for this feature
 
 ---
 

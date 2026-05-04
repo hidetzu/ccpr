@@ -33,6 +33,16 @@ type reviewInput struct {
 	Config  string `json:"config,omitempty" jsonschema:"Path to ccpr configuration file"`
 }
 
+type commentInput struct {
+	URL     string `json:"url,omitempty" jsonschema:"Full CodeCommit PR URL. When provided, takes priority for region, repo, and PR ID resolution."`
+	Repo    string `json:"repo,omitempty" jsonschema:"CodeCommit repository name. Required when url is not provided."`
+	PRId    string `json:"prId,omitempty" jsonschema:"Pull request ID. Required when url is not provided."`
+	Body    string `json:"body" jsonschema:"Comment body. Each successful call posts a real comment to the PR."`
+	Region  string `json:"region,omitempty" jsonschema:"AWS region override"`
+	Profile string `json:"profile,omitempty" jsonschema:"AWS profile name"`
+	Config  string `json:"config,omitempty" jsonschema:"Path to ccpr configuration file"`
+}
+
 func main() {
 	server := newServer()
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
@@ -55,6 +65,11 @@ func newServer() *mcp.Server {
 		Name:        "ccpr_review",
 		Description: "Fetch a CodeCommit pull request's metadata, comments, and unified diff for AI-assisted review.",
 	}, reviewPullRequest)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "ccpr_comment",
+		Description: "Post a comment to a CodeCommit pull request. WRITE-SIDE: each successful call creates a real comment, so the host should prompt the user before invocation.",
+	}, postPullRequestComment)
 
 	return server
 }
@@ -86,6 +101,22 @@ func reviewPullRequest(ctx context.Context, _ *mcp.CallToolRequest, input review
 		return nil, app.ReviewPayload{}, err
 	}
 	return nil, payload, nil
+}
+
+func postPullRequestComment(ctx context.Context, _ *mcp.CallToolRequest, input commentInput) (*mcp.CallToolResult, app.PostedComment, error) {
+	posted, err := app.PostComment(ctx, app.PostCommentOptions{
+		URL:     input.URL,
+		Repo:    input.Repo,
+		PRId:    input.PRId,
+		Body:    input.Body,
+		Region:  input.Region,
+		Profile: input.Profile,
+		Config:  input.Config,
+	}, newCodeCommitClient)
+	if err != nil {
+		return nil, app.PostedComment{}, err
+	}
+	return nil, posted, nil
 }
 
 func newCodeCommitClient(ctx context.Context, region, profile string) (codecommit.Client, error) {

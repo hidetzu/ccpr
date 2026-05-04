@@ -209,6 +209,41 @@ Behavior:
 
 This keeps the CLI summary/JSON/patch rendering and the MCP tool response backed by the same data retrieval path.
 
+### Comment
+
+`ccpr comment` and the `ccpr_comment` MCP tool both call the same internal use case.
+
+```go
+type PostCommentOptions struct {
+    URL     string
+    Repo    string
+    PRId    string
+    Body    string
+    Region  string
+    Profile string
+    Config  string
+}
+
+type PostedComment struct {
+    CommentID     string `json:"commentId"`
+    PullRequestID string `json:"pullRequestId"`
+    AuthorARN     string `json:"authorArn"`
+    CreationDate  string `json:"creationDate"`
+}
+```
+
+Behavior:
+1. Validate `Body` is non-empty
+2. If `URL` is set, parse it to extract region, repo, and PR ID. Otherwise require `Repo` and `PRId`
+3. Load config
+4. Resolve profile and region using the standard priority rules (URL-derived region wins when present)
+5. Create a CodeCommit client
+6. Fetch PR metadata to obtain `DestinationCommit` and `SourceCommit`
+7. Call `PostComment(repo, prID, before=DestinationCommit, after=SourceCommit, body)`
+8. Return a `PostedComment` with the new `CommentID`, the original `PRId`, the author ARN, and the formatted creation timestamp
+
+This keeps the CLI summary/JSON rendering and the MCP tool response backed by the same write path.
+
 ## MCP Server (FR-18)
 
 ### Binary
@@ -321,6 +356,51 @@ The output is the same schema as `ccpr review --format json` (already an object,
 
 The MCP tool only exposes this structured shape. The CLI's `summary` and `patch` formats are not surfaced via MCP.
 
+### Tool: `ccpr_comment`
+
+Posts a comment to a CodeCommit pull request. **Write-side**: each successful call creates a real comment in CodeCommit, so MCP hosts should prompt users before invocation.
+
+Input schema:
+
+```json
+{
+  "url": "https://ap-northeast-1.console.aws.amazon.com/codesuite/codecommit/repositories/my-repo/pull-requests/42",
+  "repo": "my-repo",
+  "prId": "42",
+  "body": "Looks good to me.",
+  "region": "ap-northeast-1",
+  "profile": "my-profile",
+  "config": "/path/to/config.yaml"
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `url` | string | conditional | | Full CodeCommit PR URL. When provided, takes priority for region/repo/PR ID resolution |
+| `repo` | string | conditional | | CodeCommit repository name. Required when `url` is not provided |
+| `prId` | string | conditional | | Pull request ID. Required when `url` is not provided |
+| `body` | string | yes | | Comment body |
+| `region` | string | no | | AWS region override |
+| `profile` | string | no | | AWS profile override |
+| `config` | string | no | | Path to ccpr config file |
+
+At least one of (`url`) or (`repo` and `prId`) must be provided. `body` must be non-empty.
+
+Output schema:
+
+```json
+{
+  "commentId": "eb596ff8-5133-438f-88d6-7c94f693302b",
+  "pullRequestId": "42",
+  "authorArn": "arn:aws:iam::123456789012:user/example",
+  "creationDate": "2026-05-04T10:00:00Z"
+}
+```
+
+The output is the same schema as `ccpr comment --format json` (already an object, so no wrapper is needed).
+
+The MCP tool only exposes this structured shape. The CLI's `summary` format, `--body-file` flag, and stdin (`-`) input form remain CLI-only.
+
 ### Error Handling
 
 MCP tool errors are returned as tool call errors. Error messages follow the same validation and AWS/config guidance as the shared use cases.
@@ -344,6 +424,17 @@ MCP tool errors are returned as tool call errors. Error messages follow the same
 - CodeCommit client creation failure
 - PR metadata or comment fetch failure
 - local Git diff generation failure
+
+`ccpr_comment`:
+
+- missing `body`
+- missing both `url` and (`repo` + `prId`)
+- invalid `url`
+- config load failure
+- missing region (when `url` does not supply one)
+- CodeCommit client creation failure
+- PR metadata fetch failure
+- `PostComment` failure
 
 Structured MCP-specific error codes are out of scope for this release.
 

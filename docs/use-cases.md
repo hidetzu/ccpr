@@ -206,3 +206,24 @@
   - Missing region, missing repo mapping, invalid AWS credentials, or local Git diff failure → tool call returns the same guidance as the CLI path
 - Note:
   - Only the structured (JSON-equivalent) output shape is exposed via MCP. The `summary` and `patch` formats remain CLI-only.
+
+## UC-13 Post a PR Comment via MCP
+
+- Actor: Developer using Claude Code or another MCP client
+- Trigger: After reviewing a PR with `ccpr_review`, the AI assistant has feedback ready and the developer wants to post it back to the PR without dropping to the shell
+- Precondition: `ccpr-mcp` is built and registered with the MCP client, AWS credentials are configured, region/profile are resolvable, and the MCP host is configured to prompt the user before invoking write-side tools
+- Main flow:
+  1. Developer instructs the MCP client to post a review comment on a specific PR
+  2. The client invokes the `ccpr_comment` MCP tool with `body` plus either a `url` or `repo` + `prId` (and optional `region`, `profile`, `config`)
+  3. The MCP host prompts the user to approve the call (because the tool is write-side)
+  4. `ccpr-mcp` resolves config, AWS profile, and AWS region using the same rules as `ccpr comment`
+  5. `ccpr-mcp` fetches PR metadata to obtain the source/destination commits, then calls CodeCommit `PostComment` through the shared comment use case
+  6. `ccpr-mcp` returns the same `{commentId, pullRequestId, authorArn, creationDate}` object as `ccpr comment --format json`
+- Success:
+  - The comment is posted to the PR and Claude Code receives the resulting comment metadata
+- Failure:
+  - Missing `body`, or missing both `url` and (`repo` + `prId`) → tool call returns a validation error
+  - Missing region, invalid AWS credentials, PR metadata fetch failure, or `PostComment` failure → tool call returns the same guidance as the CLI path
+- Note:
+  - This is the first write-side MCP tool. Each successful call produces a real comment in CodeCommit; the tool description and README must make this explicit so the MCP host's per-call approval gate is meaningful.
+  - `--body-file` and stdin (`-`) input forms remain CLI-only — MCP callers pass the comment body as a string argument.
