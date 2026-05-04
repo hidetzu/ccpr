@@ -179,11 +179,30 @@
   2. The client invokes the `ccpr_list` MCP tool with `repo` and optional `status`, `region`, `profile`, `config`
   3. `ccpr-mcp` resolves config, AWS profile, and AWS region using the same rules as `ccpr list`
   4. `ccpr-mcp` calls CodeCommit through the shared list use case
-  5. `ccpr-mcp` returns the same PR summary objects as `ccpr list --format json`
+  5. `ccpr-mcp` returns `{ "pullRequests": [...] }`, where each array item uses the same PR summary schema as `ccpr list --format json`
 - Success:
   - Claude Code can retrieve the PR list directly as a tool result and use it in the review workflow
 - Failure:
   - Missing repo → tool call returns a validation error
   - Missing region or invalid AWS credentials → tool call returns the same guidance as the CLI path
 - Note:
-  - This first MCP integration is read-only. MCP tools for review/create/comment/open are out of scope for this use case.
+  - This first MCP integration is read-only. Write-side MCP tools and MCP tools for create/comment/open remain out of scope for this use case.
+
+## UC-12 Review PR via MCP
+
+- Actor: Developer using Claude Code or another MCP client
+- Trigger: Developer wants the AI assistant to fetch a PR's metadata, comments, and diff for review without manually running `ccpr review --format json`
+- Precondition: `ccpr-mcp` is built and registered with the MCP client, AWS credentials are configured, config file maps the repo to a local Git path, region/profile are resolvable
+- Main flow:
+  1. Developer asks the MCP client to review a specific PR
+  2. The client invokes the `ccpr_review` MCP tool with either a `url` or `repo` + `prId` (plus optional `region`, `profile`, `config`)
+  3. `ccpr-mcp` resolves config, AWS profile, AWS region, and the local repo path using the same rules as `ccpr review`
+  4. `ccpr-mcp` fetches PR metadata and comments through CodeCommit and generates a unified diff via local Git through the shared review use case
+  5. `ccpr-mcp` returns the same `{metadata, comments, diff}` object as `ccpr review --format json`
+- Success:
+  - Claude Code receives the full review payload as a single structured tool result and proceeds to generate review feedback
+- Failure:
+  - Missing both `url` and `repo` + `prId` → tool call returns a validation error
+  - Missing region, missing repo mapping, invalid AWS credentials, or local Git diff failure → tool call returns the same guidance as the CLI path
+- Note:
+  - Only the structured (JSON-equivalent) output shape is exposed via MCP. The `summary` and `patch` formats remain CLI-only.

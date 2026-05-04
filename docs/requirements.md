@@ -219,23 +219,34 @@ repoMappings:
 - Provide a separate MCP server binary at `cmd/ccpr-mcp`
 - The MCP server must not change the existing `ccpr` CLI behavior or JSON output
 - Transport: stdio
-- Exposed tools for the first MCP release:
-  - `ccpr_list` only
+- Exposed tools:
+  - `ccpr_list` — list pull requests (read-only)
+  - `ccpr_review` — fetch a PR's metadata, comments, and diff (read-only)
 - `ccpr_list` input mirrors `ccpr list` flags where applicable:
   - `repo` (required)
   - `status` (optional, default `open`; accepted values: `open`, `closed`, `all`)
   - `config` (optional)
   - `profile` (optional)
   - `region` (optional)
-- `ccpr_list` output must reuse the existing `ccpr list --format json` PR summary schema
+- `ccpr_list` output must reuse the existing `ccpr list --format json` PR summary schema (wrapped under `pullRequests` because MCP tool output schemas must be objects)
+- `ccpr_review` input mirrors `ccpr review` parameters:
+  - `url` (optional) — full CodeCommit PR URL; takes priority when present
+  - `repo` (optional) — required when `url` is not provided
+  - `prId` (optional) — required when `url` is not provided
+  - `region` (optional)
+  - `profile` (optional)
+  - `config` (optional)
+  - At least one of (`url`) or (`repo` and `prId`) must be provided
+- `ccpr_review` output must reuse the existing `ccpr review --format json` schema (`{metadata, comments, diff}`); no wrapper is needed because the payload is already an object
+- The MCP server exposes only the structured (JSON-equivalent) output. `summary` and `patch` formats remain CLI-only
 - AWS profile resolution follows FR-09
-- AWS region resolution follows FR-17
-- The implementation must share the internal list use case with the CLI so the CLI and MCP paths do not diverge
+- AWS region resolution follows FR-17, with one tool-specific exception: when `ccpr_review` is invoked with a `url`, the region embedded in the URL takes priority over `region`/config/env (matching `ccpr review` CLI behavior). Otherwise FR-17 applies as-is
+- The implementation must share the internal use cases with the CLI so the CLI and MCP paths do not diverge
 
 Constraints:
 - No write-side MCP tools in this feature
 - No new authentication or permission model in this feature
-- MCP versions of review, create, comment, open, and doctor are out of scope
+- MCP versions of create, comment, open, and doctor are out of scope
 
 ---
 

@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hidetzu/ccpr/internal/config"
+	"github.com/hidetzu/ccpr/internal/app"
 	"github.com/hidetzu/ccpr/internal/diff"
 	"github.com/hidetzu/ccpr/internal/output"
-	"github.com/hidetzu/ccpr/internal/parser"
 )
 
 func runReview(args []string) error {
@@ -36,103 +35,36 @@ func runReview(args []string) error {
 		return err
 	}
 
-	// Validate format
 	switch flagFormat {
 	case "summary", "json", "patch":
 	default:
 		return fmt.Errorf("invalid format %q: must be summary, json, or patch", flagFormat)
 	}
 
-	// Resolve PR parameters: URL or explicit flags
-	var region, repo, prID string
-
-	if url := fs.Arg(0); url != "" {
-		result, err := parser.Parse(url)
-		if err != nil {
-			return fmt.Errorf("invalid PR URL: %w", err)
-		}
-		region = result.Region
-		repo = result.Repository
-		prID = result.PRId
-	} else if flagRepo != "" && flagPRId != "" {
-		repo = flagRepo
-		prID = flagPRId
-	} else {
-		return fmt.Errorf("provide a PR URL or --repo and --pr-id flags")
-	}
-
-	// Load config for repo mapping
-	cfg, _, err := config.Load(flagConfig)
-	if err != nil {
-		return fmt.Errorf("config: %w", err)
-	}
-
-	// Resolve region from flag or config (URL already sets it)
-	if region == "" {
-		region = cfg.ResolveRegion(flagRegion)
-	}
-	if region == "" {
-		return fmt.Errorf("region is required: use --region flag, set region in config file, or set AWS_REGION/AWS_DEFAULT_REGION env")
-	}
-
-	repoPath, err := cfg.ResolveRepoPath(repo)
+	review, err := app.GetReview(context.Background(), app.GetReviewOptions{
+		URL:     fs.Arg(0),
+		Repo:    flagRepo,
+		PRId:    flagPRId,
+		Region:  flagRegion,
+		Profile: flagProfile,
+		Config:  flagConfig,
+	}, newCodeCommitClient, defaultDiffGenerator)
 	if err != nil {
 		return err
 	}
 
-	// Resolve AWS profile
-	profile := cfg.ResolveProfile(flagProfile)
-
-	// Fetch PR metadata and comments
-	ctx := context.Background()
-	cc, err := newCodeCommitClient(ctx, region, profile)
-	if err != nil {
-		return fmt.Errorf("creating CodeCommit client: %w", err)
-	}
-
-	metadata, err := cc.GetPRMetadata(ctx, repo, prID)
-	if err != nil {
-		return fmt.Errorf("fetching PR metadata: %w", err)
-	}
-
-	comments, err := cc.GetPRComments(ctx, repo, prID, metadata.DestinationCommit, metadata.SourceCommit)
-	if err != nil {
-		return fmt.Errorf("fetching PR comments: %w", err)
-	}
-
-	// Generate diff
-	gen := &diff.GitGenerator{}
-	diffText, err := gen.GenerateDiff(repoPath, metadata.SourceBranch, metadata.DestinationBranch)
-	if err != nil {
-		return fmt.Errorf("generating diff: %w", err)
-	}
-
-	// Build review output
-	review := output.ReviewOutput{
-		Metadata: output.PRMetadata{
-			PRId:              prID,
-			Title:             metadata.Title,
-			Description:       metadata.Description,
-			Author:            output.ShortAuthor(metadata.AuthorARN),
-			AuthorARN:         metadata.AuthorARN,
-			SourceBranch:      metadata.SourceBranch,
-			DestinationBranch: metadata.DestinationBranch,
-			Status:            metadata.Status,
-			CreationDate:      metadata.CreationDate.Format("2006-01-02T15:04:05Z07:00"),
-		},
-		Comments: convertComments(comments),
-		Diff:     diffText,
-	}
-
-	// Output
 	switch flagFormat {
 	case "patch":
-		return output.FormatPatch(os.Stdout, diffText)
+		return output.FormatPatch(os.Stdout, review.Diff)
 	case "json":
 		return output.FormatJSON(os.Stdout, review)
 	default:
 		return output.FormatSummary(os.Stdout, review)
 	}
+}
+
+func defaultDiffGenerator() diff.Generator {
+	return &diff.GitGenerator{}
 }
 
 // reorderArgs moves flags before positional args so Go's flag package

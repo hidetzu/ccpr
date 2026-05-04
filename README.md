@@ -108,10 +108,11 @@ See [docs/claude-integration.md](docs/claude-integration.md) for full setup guid
 
 ### MCP server
 
-ccpr also provides an experimental MCP server binary for Claude Code and other MCP clients. The first tool is read-only:
+ccpr also provides an experimental MCP server binary for Claude Code and other MCP clients. Currently exposed tools (read-only):
 
 ```text
-ccpr_list
+ccpr_list      List PRs for a repository
+ccpr_review    Fetch PR metadata, comments, and diff for a single PR
 ```
 
 Build it locally:
@@ -126,7 +127,10 @@ Register it with Claude Code:
 claude mcp add ccpr -- /path/to/ccpr/bin/ccpr-mcp
 ```
 
-Then ask Claude Code to list CodeCommit PRs for a repository. The tool accepts `repo`, `status`, `region`, `profile`, and `config`, and returns the same PR summary schema as `ccpr list --format json`.
+Then ask Claude Code to list or review CodeCommit PRs:
+
+- `ccpr_list` accepts `repo`, `status`, `region`, `profile`, and `config`, and returns the same PR summary schema as `ccpr list --format json` (wrapped under `pullRequests`).
+- `ccpr_review` accepts either `url` or `repo` + `prId`, plus optional `region`, `profile`, and `config`, and returns the same `{metadata, comments, diff}` payload as `ccpr review --format json`.
 
 ---
 

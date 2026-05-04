@@ -60,6 +60,8 @@ Top-level object combining PR metadata, comments, and diff.
 | `timestamp` | string | yes | ISO 8601 timestamp |
 | `filePath` | string | optional | File path (omitted for PR-level comments) |
 
+The MCP tool `ccpr_review` returns this same object directly; no wrapper is added because the payload is already an object.
+
 ---
 
 ### `list --format json`
