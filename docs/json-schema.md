@@ -118,6 +118,8 @@ Result of posting a comment.
 | `authorArn` | string | yes | Full IAM ARN of the commenter |
 | `creationDate` | string | yes | ISO 8601 timestamp |
 
+The MCP tool `ccpr_comment` returns this same object directly; no wrapper is added because the payload is already an object.
+
 ---
 
 ### `create --format json`

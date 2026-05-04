@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hidetzu/ccpr/internal/app"
 	"github.com/hidetzu/ccpr/internal/output"
 )
 
@@ -171,7 +172,12 @@ func TestGolden_ListJSON_Empty(t *testing.T) {
 
 func TestGolden_CommentJSON(t *testing.T) {
 	var buf bytes.Buffer
-	if err := printCommentJSON(&buf, "42", "eb596ff8-5133-438f-88d6-7c94f693302b", "arn:aws:iam::123:user/dev", "2026-04-01T10:00:00+09:00"); err != nil {
+	if err := printCommentJSON(&buf, app.PostedComment{
+		CommentID:     "eb596ff8-5133-438f-88d6-7c94f693302b",
+		PullRequestID: "42",
+		AuthorARN:     "arn:aws:iam::123:user/dev",
+		CreationDate:  "2026-04-01T10:00:00+09:00",
+	}); err != nil {
 		t.Fatalf("printCommentJSON error: %v", err)
 	}
 
@@ -313,7 +319,12 @@ func TestGolden_Indentation(t *testing.T) {
 			name: "comment",
 			output: func() string {
 				var buf bytes.Buffer
-				_ = printCommentJSON(&buf, "1", "c1", "arn", "2026-01-01T00:00:00Z")
+				_ = printCommentJSON(&buf, app.PostedComment{
+					CommentID:     "c1",
+					PullRequestID: "1",
+					AuthorARN:     "arn",
+					CreationDate:  "2026-01-01T00:00:00Z",
+				})
 				return buf.String()
 			},
 		},

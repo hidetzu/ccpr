@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hidetzu/ccpr/internal/app"
 )
 
 func TestResolveBody_Inline(t *testing.T) {
@@ -128,7 +130,12 @@ func TestPrintCommentSummary(t *testing.T) {
 
 func TestPrintCommentJSON(t *testing.T) {
 	var buf bytes.Buffer
-	err := printCommentJSON(&buf, "123", "abc-def", "arn:aws:iam::123456789012:user/test", "2026-03-31T17:00:00Z")
+	err := printCommentJSON(&buf, app.PostedComment{
+		CommentID:     "abc-def",
+		PullRequestID: "123",
+		AuthorARN:     "arn:aws:iam::123456789012:user/test",
+		CreationDate:  "2026-03-31T17:00:00Z",
+	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

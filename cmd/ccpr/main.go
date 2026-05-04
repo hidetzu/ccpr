@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
+
+	"github.com/hidetzu/ccpr/internal/app"
 )
 
 // systemError represents a system-level error (AWS, Git) that should exit with code 2.
@@ -24,6 +26,10 @@ func newSystemError(format string, a ...any) error {
 func exitCode(err error) int {
 	var sysErr *systemError
 	if errors.As(err, &sysErr) {
+		return 2
+	}
+	var appSysErr *app.SystemError
+	if errors.As(err, &appSysErr) {
 		return 2
 	}
 	return 1
