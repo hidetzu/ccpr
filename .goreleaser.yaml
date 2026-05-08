@@ -1,0 +1,126 @@
+version: 2
+
+project_name: ccpr
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: ccpr
+    main: ./cmd/ccpr
+    binary: ccpr
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+  - id: ccpr-mcp
+    main: ./cmd/ccpr-mcp
+    binary: ccpr-mcp
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: default
+    ids:
+      - ccpr
+      - ccpr-mcp
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- if eq .Os "darwin" }}macOS
+      {{- else if eq .Os "linux" }}Linux
+      {{- else if eq .Os "windows" }}Windows
+      {{- else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    files:
+      - README.md
+      - README.ja.md
+      - LICENSE
+      - docs/*.md
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - "Merge pull request"
+      - "Merge branch"
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: Bug fixes
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: Performance improvements
+      regexp: '^.*?perf(\(.+\))??!?:.+$'
+      order: 2
+    - title: Refactors
+      regexp: '^.*?refactor(\(.+\))??!?:.+$'
+      order: 3
+    - title: Others
+      order: 999
+
+homebrew_casks:
+  - name: ccpr
+    binaries:
+      - ccpr
+      - ccpr-mcp
+    repository:
+      owner: hidetzu
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: "https://github.com/hidetzu/ccpr"
+    description: "gh-style CLI for AWS CodeCommit pull request review with AI tools"
+
+release:
+  github:
+    owner: hidetzu
+    name: ccpr
+  draft: false
+  prerelease: auto
