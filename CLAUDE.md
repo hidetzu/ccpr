@@ -49,12 +49,12 @@ MVP implemented:
 - Config initialization (`ccpr init`)
 - Environment validation (`ccpr doctor`)
 
-Out of scope (for now):
+Out of scope (permanent non-goals):
 
-- Line-level comments
-- TUI
-- Multi-provider support (GitHub/GitLab)
-- Complex approval workflows
+- Line-level review comments — `gh` CLI does not expose these either, and ccpr targets feature parity with `gh` for CodeCommit. PR-level comments via `ccpr comment` cover the intended workflow.
+- Multi-provider support (GitHub / GitLab) — ccpr exists specifically as a `gh`-style CLI for CodeCommit. GitHub already has `gh` and GitLab has `glab`; expanding ccpr to other providers contradicts its reason for existing.
+- TUI — ccpr's role is to emit machine-readable output (JSON / patch) for AI tools. An interactive TUI is a different product and is not aligned with this design.
+- Complex approval workflows (multi-reviewer rules, re-request flows, etc.) — out of step with the thin-CLI principle and not part of the `gh`-style baseline ccpr targets.
 
 ## Architecture Principles
 

@@ -307,3 +307,20 @@ Target format:
     "message": "description"
   }
 }
+
+---
+
+## Scope
+
+### Out of Scope (permanent non-goals)
+
+These items are deliberately not part of ccpr's roadmap. They conflict with the project's stated purpose ("a `gh`-style CLI for CodeCommit") and will not be reconsidered without a corresponding change to that purpose.
+
+- **Line-level review comments**: ccpr targets feature parity with the `gh` CLI for CodeCommit workflows. `gh` itself does not provide line-level review comments — it operates at the PR level (overall comment, approve, request-changes). PR-level commenting via `ccpr comment` (and `ccpr_comment` over MCP) covers the intended workflow, and adding line-level support would diverge from the `gh`-style UX ccpr is modeled after.
+- **Multi-provider support (GitHub / GitLab)**: ccpr exists specifically because CodeCommit lacks a `gh`-equivalent. GitHub already has `gh`; GitLab has `glab`. Expanding ccpr to other providers contradicts its reason for existing and dilutes the CodeCommit-specific design (URL parsing, AWS profile/region resolution, CodeCommit SDK calls).
+- **TUI**: ccpr's role is to emit machine-readable output (JSON / patch) so AI tools and shell pipelines can consume it. An interactive TUI is a different product surface and is not aligned with the "CLI should be thin and composable" architecture principle.
+- **Complex approval workflows**: multi-reviewer rules, re-request flows, codeowner-style policies, etc. are out of step with the thin-CLI principle and outside the `gh`-style baseline ccpr targets. Basic comment / approve / merge stays in scope as the underlying CodeCommit API supports it.
+
+### Out of Scope (for now)
+
+- Structured JSON error output (see NFR-03)
