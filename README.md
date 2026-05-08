@@ -63,6 +63,9 @@ Pick one install method:
 # Homebrew (macOS / Linux) — installs both ccpr and ccpr-mcp
 brew install --cask hidetzu/tap/ccpr
 
+# Arch Linux (AUR) — installs both ccpr and ccpr-mcp
+yay -S ccpr-bin       # or: paru -S ccpr-bin
+
 # Prebuilt binary
 # Download from https://github.com/hidetzu/ccpr/releases/latest
 
