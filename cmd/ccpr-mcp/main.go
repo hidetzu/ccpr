@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"runtime/debug"
 
 	"github.com/hidetzu/ccpr/internal/app"
 	"github.com/hidetzu/ccpr/internal/codecommit"
@@ -10,7 +11,19 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-const version = "dev"
+// version is set via ldflags at build time.
+// Falls back to module version from BuildInfo (go install).
+var version = ""
+
+func getVersion() string {
+	if version != "" {
+		return version
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+		return info.Main.Version
+	}
+	return "dev"
+}
 
 type listInput struct {
 	Repo    string `json:"repo" jsonschema:"CodeCommit repository name"`
@@ -64,7 +77,7 @@ func main() {
 func newServer() *mcp.Server {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "ccpr-mcp",
-		Version: version,
+		Version: getVersion(),
 	}, nil)
 
 	mcp.AddTool(server, &mcp.Tool{

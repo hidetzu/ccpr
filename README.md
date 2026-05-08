@@ -57,10 +57,22 @@ Fetches PR metadata, comments, and diff in one shot — ready for AI.
 
 ## Quick Start (30 seconds)
 
-Requires [Go](https://go.dev/dl/) 1.25 or later.
+Pick one install method:
 
 ```bash
+# Homebrew (macOS / Linux) — installs both ccpr and ccpr-mcp
+brew install --cask hidetzu/tap/ccpr
+
+# Prebuilt binary
+# Download from https://github.com/hidetzu/ccpr/releases/latest
+
+# Go toolchain (requires Go 1.25+)
 go install github.com/hidetzu/ccpr/cmd/ccpr@latest
+```
+
+Then:
+
+```bash
 ccpr init
 ccpr review <codecommit-pr-url>
 ```
@@ -117,7 +129,7 @@ ccpr_comment   Post a comment to a PR                        (write-side)
 ccpr_create    Create a PR                                   (write-side)
 ```
 
-Build it locally:
+If you installed ccpr via Homebrew or a prebuilt release, `ccpr-mcp` is already on your `PATH`. Otherwise build it locally:
 
 ```bash
 make build-mcp
@@ -126,6 +138,10 @@ make build-mcp
 Register it with Claude Code:
 
 ```bash
+# Homebrew / prebuilt installs
+claude mcp add ccpr -- ccpr-mcp
+
+# Local build
 claude mcp add ccpr -- /path/to/ccpr/bin/ccpr-mcp
 ```
 
